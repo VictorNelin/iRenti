@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "1033275758545",
+    "firebase_url": "https://irenti-1.firebaseio.com",
+    "project_id": "irenti-1",
+    "storage_bucket": "irenti-1.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1033275758545:android:152ad9a526b7f03a",
+        "android_client_info": {
+          "package_name": "com.irenti"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1033275758545-5tbn1i78ofhefjig0qu7i0cpker2qokc.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDWrdgjq5CVWnjN276nwZhaeSqAdZ-LBh0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1033275758545-5tbn1i78ofhefjig0qu7i0cpker2qokc.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
