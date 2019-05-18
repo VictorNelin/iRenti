@@ -174,6 +174,8 @@ class _CatalogPageState extends State<CatalogPage> with SingleTickerProviderStat
             children: <Widget>[
               FloatingActionButton(
                 child: Icon(Icons.more_vert, color: Colors.black),
+                elevation: 0,
+                highlightElevation: 0,
                 backgroundColor: Colors.white,
                 mini: true,
                 heroTag: null,
@@ -181,6 +183,8 @@ class _CatalogPageState extends State<CatalogPage> with SingleTickerProviderStat
               ),
               FloatingActionButton(
                 child: Icon(Icons.place, color: Colors.black),
+                elevation: 0,
+                highlightElevation: 0,
                 backgroundColor: Colors.white,
                 mini: true,
                 heroTag: null,
@@ -188,6 +192,8 @@ class _CatalogPageState extends State<CatalogPage> with SingleTickerProviderStat
               ),
               FloatingActionButton(
                 child: Icon(Icons.star, color: Colors.black),
+                elevation: 0,
+                highlightElevation: 0,
                 backgroundColor: Colors.white,
                 mini: true,
                 heroTag: null,

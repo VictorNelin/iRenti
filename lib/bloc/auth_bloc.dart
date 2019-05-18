@@ -1,8 +1,9 @@
-import 'package:equatable/equatable.dart';
-import 'package:meta/meta.dart';
 import 'dart:async';
+
 import 'package:bloc/bloc.dart';
+import 'package:equatable/equatable.dart';
 import 'package:irenti/repository/user_repository.dart';
+import 'package:meta/meta.dart';
 
 class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> {
   final UserRepository _userRepository;
@@ -22,6 +23,10 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
       yield* _mapLoggedInToState();
     } else if (event is LoggedOut) {
       yield* _mapLoggedOutToState();
+    } else if (event is UpdateProfile) {
+      yield* _mapUpdateDataToState(event.data);
+    } else if (event is UploadAvatar) {
+      yield* _mapUploadAvatarToState();
     }
   }
 
@@ -30,7 +35,8 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
       final isSignedIn = await _userRepository.isSignedIn();
       if (isSignedIn) {
         final name = await _userRepository.getUser();
-        yield Authenticated(name);
+        final data = await _userRepository.getProfileData();
+        yield Authenticated(name, data);
       } else {
         yield Unauthenticated();
       }
@@ -47,6 +53,26 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
     yield Unauthenticated();
     _userRepository.signOut();
   }
+
+  Stream<AuthenticationState> _mapUpdateDataToState(List data) async* {
+    final state = currentState;
+    if (state is Authenticated) {
+      try {
+        await _userRepository.updateProfileData(data);
+        yield Authenticated(state.user, data);
+      } catch (_) {}
+    }
+  }
+
+  Stream<AuthenticationState> _mapUploadAvatarToState() async* {
+    final state = currentState;
+    if (state is Authenticated) {
+      try {
+        await _userRepository.uploadAvatar();
+        yield Authenticated(await _userRepository.getUser(), state.data);
+      } catch (_) {}
+    }
+  }
 }
 
 @immutable
@@ -61,11 +87,12 @@ class Uninitialized extends AuthenticationState {
 
 class Authenticated extends AuthenticationState {
   final FirebaseUser user;
+  final List<dynamic> data;
 
-  Authenticated(this.user) : super([user]);
+  Authenticated(this.user, [this.data]) : super([user, ...data]);
 
   @override
-  String toString() => 'Authenticated { displayName: ${user.displayName}, email: ${user.email} }';
+  String toString() => 'Authenticated { displayName: ${user.displayName}, email: ${user.email}, data: $data }';
 }
 
 class Unauthenticated extends AuthenticationState {
@@ -91,4 +118,18 @@ class LoggedIn extends AuthenticationEvent {
 class LoggedOut extends AuthenticationEvent {
   @override
   String toString() => 'LoggedOut';
+}
+
+class UpdateProfile extends AuthenticationEvent {
+  final List data;
+
+  UpdateProfile(this.data);
+
+  @override
+  String toString() => 'UpdateProfile { data: $data }';
+}
+
+class UploadAvatar extends AuthenticationEvent {
+  @override
+  String toString() => 'UploadAvatar';
 }
