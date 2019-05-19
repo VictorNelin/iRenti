@@ -26,7 +26,7 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
     } else if (event is UpdateProfile) {
       yield* _mapUpdateDataToState(event.data);
     } else if (event is UploadAvatar) {
-      yield* _mapUploadAvatarToState();
+      yield* _mapUploadAvatarToState(event.useCamera);
     }
   }
 
@@ -64,11 +64,11 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
     }
   }
 
-  Stream<AuthenticationState> _mapUploadAvatarToState() async* {
+  Stream<AuthenticationState> _mapUploadAvatarToState(bool useCamera) async* {
     final state = currentState;
     if (state is Authenticated) {
       try {
-        await _userRepository.uploadAvatar();
+        await _userRepository.uploadAvatar(useCamera);
         yield Authenticated(await _userRepository.getUser(), state.data);
       } catch (_) {}
     }
@@ -130,6 +130,10 @@ class UpdateProfile extends AuthenticationEvent {
 }
 
 class UploadAvatar extends AuthenticationEvent {
+  final bool useCamera;
+
+  UploadAvatar(this.useCamera);
+
   @override
   String toString() => 'UploadAvatar';
 }

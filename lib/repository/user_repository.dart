@@ -107,9 +107,9 @@ class UserRepository {
     );
   }
 
-  Future<void> uploadAvatar() async {
+  Future<void> uploadAvatar(bool useCamera) async {
     if (!(await isSignedIn())) return;
-    File image = await ImagePicker.pickImage(source: ImageSource.gallery);
+    File image = await ImagePicker.pickImage(source: useCamera ? ImageSource.camera : ImageSource.gallery);
     if (image != null) {
       String uid = (await getUser()).uid;
       var snap = await FirebaseStorage.instance.ref()

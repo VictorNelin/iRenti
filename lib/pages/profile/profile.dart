@@ -236,7 +236,26 @@ class _ProfilePageState extends State<ProfilePage> {
                       children: <Widget>[
                         GestureDetector(
                           onTap: () {
-                            BlocProvider.of<AuthenticationBloc>(context).dispatch(UploadAvatar());
+                            showDialog(
+                              context: ctx,
+                              builder: (ctx) => CupertinoAlertDialog(
+                                title: Text('Загрузить аватар'),
+                                actions: <Widget>[
+                                  CupertinoDialogAction(
+                                    child: Text('Сделать фото'),
+                                    onPressed: () {
+                                      BlocProvider.of<AuthenticationBloc>(context).dispatch(UploadAvatar(true));
+                                    },
+                                  ),
+                                  CupertinoDialogAction(
+                                    child: Text('Выбрать из галереи'),
+                                    onPressed: () {
+                                      BlocProvider.of<AuthenticationBloc>(context).dispatch(UploadAvatar(false));
+                                    },
+                                  ),
+                                ],
+                              )
+                            );
                           },
                           child: CircleAvatar(
                             radius: 45.0,
