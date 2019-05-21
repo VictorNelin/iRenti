@@ -27,6 +27,8 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
       yield* _mapUpdateDataToState(event.data);
     } else if (event is UploadAvatar) {
       yield* _mapUploadAvatarToState(event.useCamera);
+    } else if (event is ToggleFave) {
+      yield* _mapToggleFaveToState(event.id);
     }
   }
 
@@ -36,7 +38,8 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
       if (isSignedIn) {
         final name = await _userRepository.getUser();
         final data = await _userRepository.getProfileData();
-        yield Authenticated(name, data);
+        final fave = await _userRepository.getFaves();
+        yield Authenticated(name, data, fave);
       } else {
         yield Unauthenticated();
       }
@@ -46,7 +49,10 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
   }
 
   Stream<AuthenticationState> _mapLoggedInToState() async* {
-    yield Authenticated(await _userRepository.getUser());
+    final name = await _userRepository.getUser();
+    final data = await _userRepository.getProfileData();
+    final fave = await _userRepository.getFaves();
+    yield Authenticated(name, data, fave);
   }
 
   Stream<AuthenticationState> _mapLoggedOutToState() async* {
@@ -59,7 +65,7 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
     if (state is Authenticated) {
       try {
         await _userRepository.updateProfileData(data);
-        yield Authenticated(state.user, data);
+        yield Authenticated(state.user, data, state.fave);
       } catch (_) {}
     }
   }
@@ -69,7 +75,17 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
     if (state is Authenticated) {
       try {
         await _userRepository.uploadAvatar(useCamera);
-        yield Authenticated(await _userRepository.getUser(), state.data);
+        yield Authenticated(await _userRepository.getUser(), state.data, state.fave);
+      } catch (_) {}
+    }
+  }
+
+  Stream<AuthenticationState> _mapToggleFaveToState(String id) async* {
+    final state = currentState;
+    if (state is Authenticated) {
+      try {
+        List<String> faves = await _userRepository.toggleFave(state.fave, id);
+        yield Authenticated(state.user, state.data, faves);
       } catch (_) {}
     }
   }
@@ -87,12 +103,13 @@ class Uninitialized extends AuthenticationState {
 
 class Authenticated extends AuthenticationState {
   final FirebaseUser user;
-  final List<dynamic> data;
+  final List data;
+  final List<String> fave;
 
-  Authenticated(this.user, [this.data]) : super([user, ...data]);
+  Authenticated(this.user, [this.data, this.fave]) : super([user, ...data, ...fave]);
 
   @override
-  String toString() => 'Authenticated { displayName: ${user.displayName}, email: ${user.email}, data: $data }';
+  String toString() => 'Authenticated { displayName: ${user.displayName}, email: ${user.email}, data: $data, fave: $fave }';
 }
 
 class Unauthenticated extends AuthenticationState {
@@ -136,4 +153,13 @@ class UploadAvatar extends AuthenticationEvent {
 
   @override
   String toString() => 'UploadAvatar';
+}
+
+class ToggleFave extends AuthenticationEvent {
+  final String id;
+
+  ToggleFave(this.id);
+
+  @override
+  String toString() => 'ToggleFave { id: $id }';
 }

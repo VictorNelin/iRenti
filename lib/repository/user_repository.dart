@@ -15,13 +15,17 @@ const _kEmptyData = [null, null, null, null, null, null, null];
 class UserRepository {
   final FirebaseAuth _firebaseAuth;
   final GoogleSignIn _googleSignIn;
+  final Firestore _firestore;
+  final FirebaseStorage _storage;
   Completer _registrar;
 
-  UserRepository({FirebaseAuth firebaseAuth, GoogleSignIn googleSignIn})
+  UserRepository({FirebaseAuth firebaseAuth, GoogleSignIn googleSignIn, Firestore firestore, FirebaseStorage storage})
       : _firebaseAuth = firebaseAuth ?? FirebaseAuth.instance,
-        _googleSignIn = googleSignIn ?? GoogleSignIn();
+        _googleSignIn = googleSignIn ?? GoogleSignIn(),
+        _firestore = firestore ?? Firestore.instance,
+        _storage = storage ?? FirebaseStorage.instance;
 
-  Future<void> signInWithCredentials(String email, String password) {
+  Future signInWithCredentials(String email, String password) {
     return _firebaseAuth.signInWithEmailAndPassword(
       email: email,
       password: password,
@@ -53,7 +57,7 @@ class UserRepository {
     return _vId.future;
   }
 
-  Future<void> verify({String vId, String code}) async {
+  Future verify({String vId, String code}) async {
     AuthCredential cred = PhoneAuthProvider.getCredential(
       verificationId: vId,
       smsCode: code,
@@ -65,16 +69,20 @@ class UserRepository {
     return reg;
   }
 
-  Future<void> setData({String name, String email, String password}) async {
+  Future setData({String name, String email, String password}) async {
     FirebaseUser user = await _firebaseAuth.currentUser();
     await user.updateEmail(email);
     await user.updatePassword(password);
     await user.updateProfile(UserUpdateInfo()..displayName = name);
+    await _firestore.collection('users').document(user.uid).setData(
+      {'display_name': name, 'fave': <int>[],},
+      merge: true,
+    );
   }
 
   Future get verifyState => _registrar?.future;
 
-  Future<void> signOut() async {
+  Future signOut() async {
     return Future.wait([
       _firebaseAuth.signOut(),
       _googleSignIn.signOut(),
@@ -87,36 +95,62 @@ class UserRepository {
   }
 
   Future<FirebaseUser> getUser() async {
-    return await _firebaseAuth.currentUser();
+    FirebaseUser user = await _firebaseAuth.currentUser();
+    return user;
   }
 
   Future<List<dynamic>> getProfileData() async {
     if (!(await isSignedIn())) return _kEmptyData;
     String uid = (await getUser()).uid;
-    final doc = await Firestore.instance.collection('users').document(uid).get();
+    final doc = await _firestore.collection('users').document(uid).get();
     return doc.data == null ? _kEmptyData : (doc.data['profile']?.map((v) => v is Timestamp ? v.toDate() : v)?.toList(growable: false) ?? _kEmptyData);
   }
 
-  Future<void> updateProfileData(List<dynamic> data) async {
+  Future updateProfileData(List<dynamic> data) async {
     if (!(await isSignedIn())) return;
     assert(data.length == 7);
     String uid = (await getUser()).uid;
-    await Firestore.instance.collection('users').document(uid).setData(
+    await _firestore.collection('users').document(uid).setData(
       {'profile': data.map((v) => v is DateTime ? Timestamp.fromDate(v) : v).toList(growable: false)},
       merge: true,
     );
   }
 
-  Future<void> uploadAvatar(bool useCamera) async {
+  Future uploadAvatar(bool useCamera) async {
     if (!(await isSignedIn())) return;
     File image = await ImagePicker.pickImage(source: useCamera ? ImageSource.camera : ImageSource.gallery);
     if (image != null) {
-      String uid = (await getUser()).uid;
-      var snap = await FirebaseStorage.instance.ref()
-          .child('users/$uid/ava.${image.path.split('.').last}')
+      FirebaseUser user = await getUser();
+      var snap = await _storage.ref()
+          .child('users/${user.uid}/ava.${image.path.split('.').last}')
           .putFile(image)
           .onComplete;
-      await (await getUser()).updateProfile(UserUpdateInfo()..photoUrl = await snap.ref.getDownloadURL());
+      String url = await snap.ref.getDownloadURL();
+      await user.updateProfile(UserUpdateInfo()..photoUrl = url);
+      await _firestore.collection('users').document(user.uid).setData(
+        {'ava_url': url},
+        merge: true,
+      );
     }
+  }
+
+  Future<List<String>> getFaves() async {
+    if (!(await isSignedIn())) return _kEmptyData;
+    String uid = (await getUser()).uid;
+    final doc = await _firestore.collection('users').document(uid).get();
+    return doc.data == null ? const <String>[] : (doc.data['fave'] == null ? const <String>[] : List.castFrom(doc.data['fave']));
+  }
+
+  Future<List<String>> toggleFave(List<String> prevFave, String id) async {
+    if (!(await isSignedIn())) return null;
+    List<String> faveIds = List.of(prevFave);
+    if (faveIds.contains(id)) {
+      faveIds.remove(id);
+    } else {
+      faveIds.add(id);
+    }
+    String uid = (await getUser()).uid;
+    await _firestore.collection('users').document(uid).setData({'fave': faveIds}, merge: true);
+    return faveIds;
   }
 }
