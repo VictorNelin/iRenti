@@ -53,7 +53,10 @@ class _CatalogPageState extends State<CatalogPage> with SingleTickerProviderStat
                           TabBarView(
                             children: <Widget>[
                               for (String s in e.photos)
-                                Container(color: Color((0xff << 24) + (s.hashCode % 0xffffff))),
+                                Image.network(
+                                  s,
+                                  fit: BoxFit.cover,
+                                ),
                             ],
                           ),
                           Column(
@@ -135,25 +138,34 @@ class _CatalogPageState extends State<CatalogPage> with SingleTickerProviderStat
                                 height: 80.0,
                                 child: ListView(
                                   scrollDirection: Axis.horizontal,
-                                  children: List.generate(20, (i) {
-                                    return Padding(
-                                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                                      child: Column(
-                                        mainAxisSize: MainAxisSize.min,
-                                        crossAxisAlignment: CrossAxisAlignment.center,
-                                        children: <Widget>[
-                                          CircleAvatar(radius: 25.0),
-                                          const SizedBox(height: 6.0),
-                                          Text(
-                                            i.toString().padLeft(8, '0'),
-                                            style: Theme.of(context).textTheme.body1.copyWith(
-                                              color: Colors.white,
+                                  children: [
+                                    for (UserData user in e.neighbors)
+                                      Padding(
+                                        padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                                        child: Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          crossAxisAlignment: CrossAxisAlignment.center,
+                                          children: <Widget>[
+                                            GestureDetector(
+                                              onTap: () {
+                                                Navigator.pushNamed(context, '/catalog/profile', arguments: user);
+                                              },
+                                              child: CircleAvatar(
+                                                radius: 25.0,
+                                                backgroundImage: NetworkImage(user.photoUrl),
+                                              ),
                                             ),
-                                          ),
-                                        ],
+                                            const SizedBox(height: 6.0),
+                                            Text(
+                                              user.displayName,
+                                              style: Theme.of(context).textTheme.body1.copyWith(
+                                                color: Colors.white,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
                                       ),
-                                    );
-                                  }),
+                                  ],
                                 ),
                               ),
                             ],
@@ -171,7 +183,9 @@ class _CatalogPageState extends State<CatalogPage> with SingleTickerProviderStat
                                   backgroundColor: Colors.white,
                                   mini: true,
                                   heroTag: null,
-                                  onPressed: () {},
+                                  onPressed: () {
+                                    Navigator.of(context).pushNamed('/catalog/info', arguments: e);
+                                  },
                                 ),
                                 FloatingActionButton(
                                   child: Icon(Icons.place, color: Colors.black),
@@ -204,6 +218,7 @@ class _CatalogPageState extends State<CatalogPage> with SingleTickerProviderStat
                                               aroundPadding: const EdgeInsets.all(8.0),
                                               dismissDirection: FlushbarDismissDirection.HORIZONTAL,
                                               duration: const Duration(seconds: 3),
+                                              animationDuration: const Duration(milliseconds: 100),
                                             ).show(ctx);
                                             _stateSub.cancel();
                                             setBtnState(() {});

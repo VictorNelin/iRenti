@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:irenti/bloc/auth_bloc.dart';
+import 'package:irenti/model/user.dart';
 import 'package:irenti/widgets/checkbox.dart';
+import 'package:irenti/widgets/list_tile.dart';
 
 const List<String> _kTitles = ['Дата рождения', 'Род деятельности', 'График работы', 'Животные', 'Уборка', 'Отношение к курению', 'Вечеринки'];
 const List<List<String>> _kData = [
@@ -37,6 +39,10 @@ const List<List<String>> _kData = [
 ];
 
 class ProfilePage extends StatefulWidget {
+  final UserData user;
+
+  const ProfilePage({Key key, this.user}) : super(key: key);
+
   @override
   _ProfilePageState createState() => _ProfilePageState();
 }
@@ -47,7 +53,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
   String _toString(int field, value) {
     if (value == null) {
-      return 'Указать';
+      return widget.user == null ? 'Указать' : 'Не указано';
     }
     if (value is DateTime) {
       return CupertinoLocalizations.of(context).datePickerMediumDate(value);
@@ -161,13 +167,139 @@ class _ProfilePageState extends State<ProfilePage> {
     });
   }
 
+  //user is either FirebaseUser or UserData
+  Widget _buildHeader(BuildContext context, dynamic user) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
+      child: Row(
+        children: <Widget>[
+          GestureDetector(
+            onTap: user is UserData ? null : () {
+              showDialog(
+                  context: context,
+                  builder: (ctx) => CupertinoAlertDialog(
+                    title: Text('Загрузить аватар'),
+                    actions: <Widget>[
+                      CupertinoDialogAction(
+                        child: Text('Сделать фото'),
+                        onPressed: () {
+                          BlocProvider.of<AuthenticationBloc>(context).dispatch(UploadAvatar(true));
+                        },
+                      ),
+                      CupertinoDialogAction(
+                        child: Text('Выбрать из галереи'),
+                        onPressed: () {
+                          BlocProvider.of<AuthenticationBloc>(context).dispatch(UploadAvatar(false));
+                        },
+                      ),
+                    ],
+                  ),
+              );
+            },
+            child: CircleAvatar(
+              radius: 45.0,
+              backgroundColor: const Color(0xFFF2F2F2),
+              child: Visibility(
+                visible: user.photoUrl == null || user.photoUrl.isEmpty,
+                child: const Icon(Icons.add, size: 32.0, color: Color(0xFFEF5353)),
+              ),
+              backgroundImage: user.photoUrl != null && user.photoUrl.isNotEmpty
+                  ? NetworkImage(user.photoUrl)
+                  : null,
+            ),
+          ),
+          const SizedBox(width: 20.0),
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Text(
+                user.displayName,
+                style: Theme.of(context).textTheme.title.copyWith(
+                  color: const Color.fromRGBO(0x27, 0x2D, 0x30, 1),
+                ),
+              ),
+              //UserData.email always returns null
+              if (user.email != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 6),
+                  child: Text(
+                    user.email,
+                    style: Theme.of(context).textTheme.body1.copyWith(
+                      color: const Color.fromRGBO(0x27, 0x2D, 0x30, 0.7),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBody(BuildContext context, dynamic user, List data) {
+    return ListView(
+      padding: EdgeInsets.zero,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 16, right: 16, top: 32, bottom: 40),
+          child: Text(
+            'Профиль',
+            style: Theme.of(context).textTheme.headline.copyWith(
+              color: const Color(0xFF272D30),
+            ),
+          ),
+        ),
+        if (widget.user == null)
+          Padding(
+            padding: const EdgeInsets.only(left: 16, right: 16, bottom: 40.0),
+            child: Text(
+              'Добавьте информацию о себе.\n'
+                  'Это поможет точнее подобрать жилье\n'
+                  'и познакомить вас с соседями.',
+              style: Theme.of(context).textTheme.body1.copyWith(
+                color: const Color(0xFF272D30),
+                fontWeight: FontWeight.normal,
+                fontSize: 14.0,
+              ),
+            ),
+          ),
+        _buildHeader(context, user),
+        for (int i = 0; i < 7; ++i)
+          ListEntry(
+            title: _kTitles[i],
+            child: Text(_toString(i, data != null ? data[i] : this.data)),
+            padding: 16,
+            trailing: widget.user == null ? const Icon(Icons.edit, size: 16.0) : null,
+            onTap: widget.user == null ? () => _onTapEntry(context, i) : null,
+          ),
+        if (widget.user == null)
+          const Divider(color: Color.fromRGBO(0x27, 0x2D, 0x30, 0.08), height: 0.0),
+        if (widget.user == null)
+          Padding(
+            padding: const EdgeInsets.only(left: 16.0, right: 16.0, top: 16.0, bottom: 64.0),
+            child: FlatButton(
+              child: Text('СОХРАНИТЬ'),
+              color: const Color(0xFF272D30),
+              onPressed: _canSave ? () {
+                BlocProvider.of<AuthenticationBloc>(context).dispatch(UpdateProfile(this.data));
+                setState(() {
+                  _canSave = false;
+                });
+              } : null,
+            ),
+          ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(kToolbarHeight),
         child: SafeArea(
-          child: Row(
+          child: widget.user == null ? Row(
             children: <Widget>[
               InkWell(
                 onTap: () {},
@@ -181,7 +313,6 @@ class _ProfilePageState extends State<ProfilePage> {
                 onTap: () {
                   BlocProvider.of<AuthenticationBloc>(context).dispatch(LoggedOut());
                   Navigator.of(context, rootNavigator: true).pushReplacementNamed('/');
-                  //Navigator.of(context, rootNavigator: true).popUntil((r) => r.settings.name == '/');
                 },
                 child: Container(
                   alignment: Alignment.center,
@@ -195,167 +326,39 @@ class _ProfilePageState extends State<ProfilePage> {
                 ),
               ),
             ],
+          ) : InkWell(
+            onTap: () => Navigator.pop(context),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                const SizedBox(width: 16.0, height: kToolbarHeight),
+                const Icon(Icons.arrow_back_ios, size: 16.0),
+                const SizedBox(width: 16.0),
+                Align(child: Text(
+                  'Назад',
+                  style: Theme.of(context).textTheme.subhead.copyWith(
+                    fontSize: 14.0,
+                  ),
+                )),
+                const SizedBox(width: 16.0),
+              ],
+            ),
           ),
         ),
       ),
       body: Theme(
         data: Theme.of(context).copyWith(canvasColor: Colors.transparent),
-        child: BlocBuilder(
+        child: widget.user == null ? BlocBuilder(
           bloc: BlocProvider.of<AuthenticationBloc>(context),
           builder: (ctx, state) {
             if (state is Authenticated) {
               data ??= state.data;
-              return ListView(
-                padding: EdgeInsets.zero,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.only(left: 16, right: 16, top: 32),
-                    child: Text(
-                      'Профиль',
-                      style: Theme.of(context).textTheme.headline.copyWith(
-                        color: const Color(0xFF272D30),
-                      ),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 40.0),
-                    child: Text(
-                      'Добавьте информацию о себе.\n'
-                          'Это поможет точнее подобрать жилье\n'
-                          'и познакомить вас с соседями.',
-                      style: Theme.of(context).textTheme.body1.copyWith(
-                        color: const Color(0xFF272D30),
-                        fontWeight: FontWeight.normal,
-                        fontSize: 14.0,
-                      ),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
-                    child: Row(
-                      children: <Widget>[
-                        GestureDetector(
-                          onTap: () {
-                            showDialog(
-                              context: ctx,
-                              builder: (ctx) => CupertinoAlertDialog(
-                                title: Text('Загрузить аватар'),
-                                actions: <Widget>[
-                                  CupertinoDialogAction(
-                                    child: Text('Сделать фото'),
-                                    onPressed: () {
-                                      BlocProvider.of<AuthenticationBloc>(context).dispatch(UploadAvatar(true));
-                                    },
-                                  ),
-                                  CupertinoDialogAction(
-                                    child: Text('Выбрать из галереи'),
-                                    onPressed: () {
-                                      BlocProvider.of<AuthenticationBloc>(context).dispatch(UploadAvatar(false));
-                                    },
-                                  ),
-                                ],
-                              )
-                            );
-                          },
-                          child: CircleAvatar(
-                            radius: 45.0,
-                            backgroundColor: const Color(0xFFF2F2F2),
-                            child: Visibility(
-                              visible: state.user.photoUrl == null || state.user.photoUrl.isEmpty,
-                              child: const Icon(Icons.add, size: 32.0, color: Color(0xFFEF5353)),
-                            ),
-                            backgroundImage: state.user.photoUrl != null && state.user.photoUrl.isNotEmpty
-                                ? NetworkImage(state.user.photoUrl)
-                                : null,
-                          ),
-                        ),
-                        const SizedBox(width: 20.0),
-                        Column(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: <Widget>[
-                            Text(
-                              state.user.displayName,
-                              style: Theme.of(context).textTheme.title.copyWith(
-                                color: const Color.fromRGBO(0x27, 0x2D, 0x30, 1),
-                              ),
-                            ),
-                            const SizedBox(height: 6.0),
-                            Text(
-                              state.user.email,
-                              style: Theme.of(context).textTheme.body1.copyWith(
-                                color: const Color.fromRGBO(0x27, 0x2D, 0x30, 0.7),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                  const Divider(color: Color.fromRGBO(0x27, 0x2D, 0x30, 0.08), height: 0.0),
-                  for (int i = 0; i < 7; ++i)
-                    Column(
-                      children: <Widget>[
-                        InkWell(
-                          child: Container(
-                            height: 80.0,
-                            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: <Widget>[
-                                Expanded(
-                                  child: Column(
-                                    //mainAxisSize: MainAxisSize.min,
-                                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: <Widget>[
-                                      Text(
-                                        _kTitles[i],
-                                        style: Theme.of(context).textTheme.body1.copyWith(
-                                          color: const Color.fromRGBO(0x27, 0x2D, 0x30, 0.7),
-                                          fontWeight: FontWeight.normal,
-                                          fontSize: 14.0,
-                                        ),
-                                      ),
-                                      Text(
-                                        _toString(i, data[i]),
-                                        style: Theme.of(context).textTheme.body2.copyWith(
-                                          fontWeight: FontWeight.w500,
-                                          color: const Color(0xFF272D30),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                Icon(Icons.edit, size: 16.0),
-                              ],
-                            ),
-                          ),
-                          onTap: () => _onTapEntry(ctx, i),
-                        ),
-                        const Divider(color: Color.fromRGBO(0x27, 0x2D, 0x30, 0.08), height: 0.0),
-                      ],
-                    ),
-                  Padding(
-                    padding: const EdgeInsets.only(left: 16.0, right: 16.0, top: 16.0, bottom: 64.0),
-                    child: FlatButton(
-                      child: Text('СОХРАНИТЬ'),
-                      color: const Color(0xFF272D30),
-                      onPressed: _canSave ? () {
-                        BlocProvider.of<AuthenticationBloc>(context).dispatch(UpdateProfile(data));
-                        setState(() {
-                          _canSave = false;
-                        });
-                      } : null,
-                    ),
-                  ),
-                ],
-              );
+              return _buildBody(ctx, state.user, data);
             } else {
               return Container();
             }
           }
-        ),
+        ) : _buildBody(context, widget.user, widget.user.data),
       ),
     );
   }

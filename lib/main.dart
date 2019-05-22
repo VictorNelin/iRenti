@@ -9,6 +9,7 @@ import 'pages/auth/welcome.dart';
 import 'pages/auth/login.dart';
 import 'pages/auth/register.dart';
 import 'pages/catalog/catalog.dart';
+import 'pages/catalog/catalog_info.dart';
 import 'pages/profile/profile.dart';
 
 class SimpleBlocDelegate extends BlocDelegate {
@@ -147,6 +148,14 @@ class _AppState extends State<App> {
                   );
                 },
               ),
+            );
+          } else if (settings.name == '/catalog/info') {
+            return CupertinoPageRoute(
+              builder: (ctx) => CatalogInfoPage(entry: settings.arguments),
+            );
+          } else if (settings.name == '/catalog/profile') {
+            return CupertinoPageRoute(
+              builder: (ctx) => ProfilePage(user: settings.arguments),
             );
           }
         },
