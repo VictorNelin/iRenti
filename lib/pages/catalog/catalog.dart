@@ -6,7 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flushbar/flushbar.dart';
 import 'package:irenti/bloc/auth_bloc.dart';
 import 'package:irenti/bloc/catalog_bloc.dart';
-import 'package:irenti/repository/catalog_repository.dart';
+import 'package:irenti/repository/catalog_repository_mysql.dart';
 
 class CatalogPage extends StatefulWidget {
   @override
@@ -14,12 +14,21 @@ class CatalogPage extends StatefulWidget {
 }
 
 class _CatalogPageState extends State<CatalogPage> with SingleTickerProviderStateMixin {
+  final ScrollController _scroller = ScrollController();
   final CatalogBloc _bloc = CatalogBloc(catalogRepository: CatalogRepository());
+  int _count = 0;
+  bool _canFetch = false;
 
   @override
   void initState() {
     super.initState();
     _bloc.dispatch(CatalogEvent());
+    _scroller.addListener(() {
+      if (_canFetch && (_scroller.offset / MediaQuery.of(context).size.height) >= _count * 0.8) {
+        _canFetch = false;
+        _bloc.dispatch(CatalogEvent());
+      }
+    });
   }
 
   @override
@@ -34,17 +43,20 @@ class _CatalogPageState extends State<CatalogPage> with SingleTickerProviderStat
       bloc: _bloc,
       builder: (context, state) {
         if (state is LoadedState) {
+          _count = state.entries.length;
+          _canFetch = state.hasMore;
           return Stack(
             children: <Widget>[
               ListView.builder(
-                physics: const PageScrollPhysics(parent: BouncingScrollPhysics()),
+                controller: _scroller,
+                physics: const PageScrollPhysics(parent: ClampingScrollPhysics()),
                 padding: EdgeInsets.zero,
                 itemCount: state.entries.length,
                 itemBuilder: (ctx, i) {
                   CatalogEntry e = state.entries[i];
                   return SizedBox(
                     width: MediaQuery.of(context).size.width,
-                    height: MediaQuery.of(context).size.height - MediaQuery.of(context).padding.bottom,
+                    height: MediaQuery.of(context).size.height,
                     child: DefaultTabController(
                       length: e.photos.length,
                       child: Stack(
@@ -66,9 +78,9 @@ class _CatalogPageState extends State<CatalogPage> with SingleTickerProviderStat
                               Padding(
                                 padding: const EdgeInsets.symmetric(horizontal: 20.0),
                                 child: Text(
-                                  '${e.rooms}-к квартира, '
-                                      '${e.space.toStringAsFixed(1)} м², '
-                                      '${e.floor}/${e.maxFloor} этаж',
+                                  '${e.rooms}-к квартира'
+                                      ', ${e.space.toStringAsFixed(1)} м²'
+                                      '${e.floor != null ? ', ${e.floor}${e.maxFloor != null ? '/${e.maxFloor}' : ''} этаж' : ''}',
                                   style: Theme.of(context).textTheme.headline.copyWith(
                                     color: const Color(0xFFFFFFFF),
                                   ),
@@ -98,7 +110,7 @@ class _CatalogPageState extends State<CatalogPage> with SingleTickerProviderStat
                               Builder(builder: (ctx) {
                                 return Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
-                                  children: List.generate(e.photos.length, (i) {
+                                  children: List.generate(e.photos.length.clamp(0, 20), (i) {
                                     TabController _tabs = DefaultTabController.of(ctx);
                                     return AnimatedBuilder(
                                       animation: _tabs.animation,
@@ -168,6 +180,7 @@ class _CatalogPageState extends State<CatalogPage> with SingleTickerProviderStat
                                   ],
                                 ),
                               ),
+                              SizedBox(height: MediaQuery.of(context).padding.bottom),
                             ],
                           ),
                           Padding(

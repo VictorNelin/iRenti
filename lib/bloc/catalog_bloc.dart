@@ -1,7 +1,9 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:meta/meta.dart';
-import 'package:irenti/repository/catalog_repository.dart';
+import 'package:irenti/repository/catalog_repository_mysql.dart';
+
+const int _kCount = 20;
 
 class CatalogBloc extends Bloc<CatalogEvent, CatalogState> {
   final CatalogRepository _catalogRepository;
@@ -17,7 +19,13 @@ class CatalogBloc extends Bloc<CatalogEvent, CatalogState> {
   Stream<CatalogState> mapEventToState(CatalogEvent event) async* {
     if (event is CatalogEvent) {
       try {
-        yield LoadedState(await _catalogRepository.fetchData());
+        final state = currentState;
+        if (state is LoadedState && !state.hasMore) return;
+        final data = await _catalogRepository.fetchData(
+          offset: state is LoadedState ? state.entries.length : 0,
+          count: _kCount,
+        );
+        yield LoadedState(state is LoadedState ? state.entries + data : data, data.length == _kCount);
       } on Error catch (e) {
         print(e);
         print(e.stackTrace);
@@ -57,8 +65,9 @@ class ErrorState extends CatalogState {
 @immutable
 class LoadedState extends CatalogState {
   final List<CatalogEntry> entries;
+  final bool hasMore;
 
-  LoadedState(this.entries) : super(entries);
+  LoadedState(this.entries, [this.hasMore = true]) : super(<dynamic>[...entries, hasMore]);
 
   @override
   String toString() => 'LoadedState { entries: $entries }';
