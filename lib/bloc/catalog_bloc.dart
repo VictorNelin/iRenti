@@ -22,10 +22,14 @@ class CatalogBloc extends Bloc<CatalogEvent, CatalogState> {
         final state = currentState;
         if (state is LoadedState && !state.hasMore) return;
         final data = await _catalogRepository.fetchData(
-          offset: state is LoadedState ? state.entries.length : 0,
+          ids: event.ids,
+          offset: state is LoadedState && event.ids == null ? state.entries.length : 0,
           count: _kCount,
         );
-        yield LoadedState(state is LoadedState ? state.entries + data : data, data.length == _kCount);
+        yield LoadedState(
+          state is LoadedState && event.ids == null ? state.entries + data : data,
+          event.ids != null || data.length == _kCount,
+        );
       } on Error catch (e) {
         print(e);
         print(e.stackTrace);
@@ -75,5 +79,7 @@ class LoadedState extends CatalogState {
 
 @immutable
 class CatalogEvent extends Equatable {
-  CatalogEvent([List props]) : super(props ?? []);
+  final List<String> ids;
+
+  CatalogEvent([this.ids]) : super(ids ?? []);
 }

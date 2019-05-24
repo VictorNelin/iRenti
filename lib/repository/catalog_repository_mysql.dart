@@ -21,9 +21,14 @@ class CatalogRepository {
   CatalogRepository({MySqlConnection db, Firestore firestore})
       : _db = db, _firestore = firestore ?? Firestore.instance;
 
-  Future<List<CatalogEntry>> fetchData({int count, int offset = 0}) async {
+  Future<List<CatalogEntry>> fetchData({List<String> ids, int count, int offset = 0}) async {
     _db ??= await MySqlConnection.connect(_kDbSettings);
-    Results q = await _db.query('select * from datapars order by id asc limit ${offset ?? 0},$count;');
+    String query = 'select * from datapars '
+        '${ids != null ? 'where id in (${ids.isEmpty ? '-1' : ids.join(',')}) ' : ''}'
+        'order by id asc'
+        '${ids == null ? ' limit ${offset ?? 0},$count' : ''};';
+    //print(query);
+    Results q = await _db.query(query);
     List<CatalogEntry> entries = [
       for (Row row in q)
         CatalogEntry.fromMap(row['id'].toString(), row.fields),

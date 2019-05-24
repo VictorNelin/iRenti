@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:bloc/bloc.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:irenti/bloc/auth_bloc.dart';
@@ -16,17 +17,20 @@ class SimpleBlocDelegate extends BlocDelegate {
   @override
   void onError(Bloc bloc, Object error, StackTrace stacktrace) {
     super.onError(bloc, error, stacktrace);
-    print(error);
+    debugPrint(error.toString());
   }
 
   @override
   void onTransition(Bloc bloc, Transition transition) {
     super.onTransition(bloc, transition);
-    print(transition);
+    debugPrint(transition.toString());
   }
 }
 
 void main() {
+  if (kReleaseMode) {
+    debugPrint = (_, {wrapWidth}) {};
+  }
   BlocSupervisor().delegate = SimpleBlocDelegate();
   runApp(App());
 }
@@ -138,6 +142,8 @@ class _AppState extends State<App> {
                   switch (i) {
                     case 0:
                       return CatalogPage();
+                    case 1:
+                      return CatalogPage(favorites: true);
                     case 3:
                       return ProfilePage();
                   }
