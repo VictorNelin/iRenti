@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:bloc/bloc.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:irenti/bloc/auth_bloc.dart';
+import 'package:irenti/repository/messages_repository.dart';
 import 'package:irenti/repository/user_repository.dart';
 
 import 'pages/auth/welcome.dart';
@@ -11,6 +12,8 @@ import 'pages/auth/login.dart';
 import 'pages/auth/register.dart';
 import 'pages/catalog/catalog.dart';
 import 'pages/catalog/catalog_info.dart';
+import 'pages/messages/dialogs.dart';
+import 'pages/messages/single_dialog.dart';
 import 'pages/profile/profile.dart';
 
 class SimpleBlocDelegate extends BlocDelegate {
@@ -42,6 +45,7 @@ class App extends StatefulWidget {
 
 class _AppState extends State<App> {
   final UserRepository _userRepository = UserRepository();
+  final MessagesRepository _messagesRepository = MessagesRepository();
   AuthenticationBloc _authenticationBloc;
 
   @override
@@ -131,6 +135,9 @@ class _AppState extends State<App> {
               builder: (ctx) => CupertinoTabScaffold(
                 tabBar: CupertinoTabBar(
                   currentIndex: settings.arguments ?? 0,
+                  backgroundColor: const Color(0xff272d30),
+                  activeColor: const Color(0x80ffffff),
+                  inactiveColor: const Color(0xffffffff),
                   items: [
                     BottomNavigationBarItem(icon: Icon(Icons.home)),
                     BottomNavigationBarItem(icon: Icon(Icons.star)),
@@ -144,6 +151,8 @@ class _AppState extends State<App> {
                       return CatalogPage();
                     case 1:
                       return CatalogPage(favorites: true);
+                    case 2:
+                      return DialogsPage(messagesRepository: _messagesRepository);
                     case 3:
                       return ProfilePage();
                   }
@@ -162,6 +171,15 @@ class _AppState extends State<App> {
           } else if (settings.name == '/catalog/profile') {
             return CupertinoPageRoute(
               builder: (ctx) => ProfilePage(user: settings.arguments),
+            );
+          } else if (settings.name == '/dialog') {
+            Map<String, dynamic> args = Map.from(settings.arguments);
+            return CupertinoPageRoute(
+              builder: (ctx) => DialogPage(
+                dialogId: args['id'],
+                title: args['title'],
+                messagesBloc: args['bloc'],
+              ),
             );
           }
         },

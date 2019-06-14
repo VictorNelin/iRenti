@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:irenti/repository/catalog_repository_mysql.dart';
+import 'package:irenti/model/catalog.dart';
 import 'package:irenti/widgets/list_tile.dart';
 
 class CatalogInfoPage extends StatelessWidget {
@@ -39,9 +39,7 @@ class CatalogInfoPage extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20.0),
             child: Text(
-              '${e.rooms}-к квартира'
-                  ', ${e.space.toStringAsFixed(1)} м²'
-                  '${e.floor != null ? ', ${e.floor}${e.maxFloor != null ? '/${e.maxFloor}' : ''} этаж' : ''}',
+              e.titleFormatted,
               style: Theme.of(context).textTheme.headline.copyWith(
                 color: const Color(0xFF272D30),
               ),
@@ -51,7 +49,7 @@ class CatalogInfoPage extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20.0),
             child: Text(
-              '${e.cost.toStringAsFixed(2)} руб./месяц',
+              '${e.costFormatted} руб./месяц',
               style: Theme.of(context).textTheme.title.copyWith(
                 color: const Color(0xFF272D30),
               ),

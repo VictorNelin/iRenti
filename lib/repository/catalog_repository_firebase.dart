@@ -1,8 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:quiver/core.dart';
-import 'package:meta/meta.dart';
+import 'package:irenti/model/catalog.dart';
 import 'package:irenti/model/user.dart';
 
+export 'package:irenti/model/catalog.dart';
 export 'package:irenti/model/user.dart';
 
 class CatalogRepository {
@@ -17,68 +17,11 @@ class CatalogRepository {
       for (DocumentSnapshot doc in q.documents)
         CatalogEntry.fromMap(doc.reference.path.split('/').last, doc.data),
     ];
-    return await Future.wait(entries.map((entry) => entry.loaded(_firestore)));
-  }
-}
-
-@immutable
-class CatalogEntry {
-  final String id;
-  final int type;
-  final int rooms;
-  final double space;
-  final int floor;
-  final int maxFloor;
-  final double cost;
-  final String address;
-  final List<String> photos;
-  final GeoPoint location;
-  final bool fave;
-  final List<DocumentReference> neighborRefs;
-  final List<UserData> neighbors;
-  final String description;
-  final String conditions;
-
-  const CatalogEntry({
-    this.id,
-    this.type,
-    this.rooms,
-    this.space,
-    this.floor,
-    this.maxFloor,
-    this.cost,
-    this.address,
-    this.photos,
-    this.location,
-    this.fave,
-    this.neighborRefs,
-    this.neighbors,
-    this.description,
-    this.conditions,
-  });
-
-  factory CatalogEntry.fromMap(String id, Map<String, dynamic> src) {
-    print(src['neighbors'][0].runtimeType);
-    return CatalogEntry(
-      id: id,
-      type: src['type'],
-      rooms: src['rooms'],
-      space: double.tryParse(src['space']),
-      floor: src['floor'],
-      maxFloor: src['maxFloor'],
-      cost: double.tryParse(src['cost']),
-      address: src['address'],
-      photos: List.castFrom(src['photos'] ?? []),
-      location: src['location'],
-      fave: src['fave'],
-      neighborRefs: List.castFrom(src['neighbors'] ?? []),
-      description: src['description'],
-      conditions: src['conditions'],
-    );
+    return await Future.wait(entries.map((entry) => _loaded(entry, _firestore)));
   }
 
-  Future<CatalogEntry> loaded(Firestore firestore) async {
-    List<DocumentSnapshot> snaps = await Future.wait(neighborRefs.map((ref) => ref.get()));
+  Future<CatalogEntry> _loaded(CatalogEntry on, Firestore firestore) async {
+    var snaps = await Future.wait(on.neighborIds.map((ref) => firestore.collection('users').document(ref).get()));
     List<UserData> users = [
       for (DocumentSnapshot doc in snaps)
         UserData(
@@ -89,43 +32,20 @@ class CatalogEntry {
         ),
     ];
     return CatalogEntry(
-      id: id,
-      type: type,
-      rooms: rooms,
-      space: space,
-      floor: floor,
-      maxFloor: maxFloor,
-      cost: cost,
-      address: address,
-      photos: photos,
-      location: location,
-      fave: fave,
-      neighborRefs: neighborRefs,
+      id: on.id,
+      type: on.type,
+      rooms: on.rooms,
+      space: on.space,
+      floor: on.floor,
+      maxFloor: on.maxFloor,
+      cost: on.cost,
+      address: on.address,
+      photos: on.photos,
+      location: on.location,
+      neighborIds: on.neighborIds,
       neighbors: users,
-      description: description,
-      conditions: conditions,
+      description: on.description,
+      conditions: on.conditions,
     );
   }
-
-  @override
-  int get hashCode => hashObjects([
-    id,
-    type,
-    rooms,
-    space,
-    floor,
-    maxFloor,
-    cost,
-    address,
-    photos,
-    location,
-    fave,
-    neighborRefs,
-    neighbors,
-    description,
-    conditions,
-  ]);
-
-  @override
-  bool operator ==(other) => other is CatalogEntry && hashCode == other.hashCode;
 }

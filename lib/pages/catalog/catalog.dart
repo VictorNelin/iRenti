@@ -6,7 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flushbar/flushbar.dart';
 import 'package:irenti/bloc/auth_bloc.dart';
 import 'package:irenti/bloc/catalog_bloc.dart';
-import 'package:irenti/repository/catalog_repository_mysql.dart';
+import 'package:irenti/repository/catalog_repository.dart';
 
 class CatalogPage extends StatefulWidget {
   final bool favorites;
@@ -69,7 +69,7 @@ class _CatalogPageState extends State<CatalogPage> with SingleTickerProviderStat
                       return SizedBox(
                         key: ValueKey(i),
                         width: MediaQuery.of(context).size.width,
-                        height: MediaQuery.of(context).size.height,
+                        height: MediaQuery.of(context).size.height - 50,
                         child: DefaultTabController(
                           length: e.photos.length,
                           child: Stack(
@@ -91,9 +91,7 @@ class _CatalogPageState extends State<CatalogPage> with SingleTickerProviderStat
                                   Padding(
                                     padding: const EdgeInsets.symmetric(horizontal: 20.0),
                                     child: Text(
-                                      '${e.rooms}-к квартира'
-                                          ', ${e.space.toStringAsFixed(1)} м²'
-                                          '${e.floor != null ? ', ${e.floor}${e.maxFloor != null ? '/${e.maxFloor}' : ''} этаж' : ''}',
+                                      e.titleFormatted,
                                       style: Theme.of(context).textTheme.headline.copyWith(
                                         color: const Color(0xFFFFFFFF),
                                       ),
@@ -103,7 +101,7 @@ class _CatalogPageState extends State<CatalogPage> with SingleTickerProviderStat
                                   Padding(
                                     padding: const EdgeInsets.symmetric(horizontal: 20.0),
                                     child: Text(
-                                      '${e.cost.toStringAsFixed(2)} руб./месяц',
+                                      '${e.costFormatted} руб./месяц',
                                       style: Theme.of(context).textTheme.title.copyWith(
                                         color: const Color(0xFFFFFFFF),
                                       ),

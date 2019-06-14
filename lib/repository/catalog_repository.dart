@@ -1,0 +1,1 @@
+export 'package:irenti/repository/catalog_repository_mysql.dart';
