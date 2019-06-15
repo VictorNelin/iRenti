@@ -61,8 +61,10 @@ class _DialogPageState extends State<DialogPage> {
 
   String _formatDate(BuildContext context, int timestamp) {
     DateTime date = DateTime.fromMillisecondsSinceEpoch(timestamp);
-    var now = DateTime.now();
-    return '${date.day} ${_months[date.month - 1]}${date.year != now.year ? ' ${date.year}' : ''}, ${date.hour}:${date.minute}';
+    return '${date.day} ${_months[date.month - 1]}'
+        '${date.year != DateTime.now().year ? ' ${date.year}' : ''}, '
+        '${date.hour.toString().padLeft(2, '0')}:'
+        '${date.minute.toString().padLeft(2, '0')}';
   }
 
   Widget _buildInfoCard(BuildContext context) {
