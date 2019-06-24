@@ -54,43 +54,36 @@ class _RoundCheckboxState extends State<RoundCheckbox> with SingleTickerProvider
         unselectedWidgetColor: Colors.transparent,
       ),
       child: ClipOval(
-        child: Container(
-          width: widget.outerSize,
-          height: widget.outerSize,
+        child: SizedOverflowBox(
+          size: Size.square(widget.outerSize),
           alignment: Alignment.center,
-          child: OverflowBox(
-            minWidth: widget.innerSize,
-            minHeight: widget.innerSize,
-            maxWidth: widget.innerSize,
-            maxHeight: widget.innerSize,
-            child: DecoratedBoxTransition(
-              decoration: DecorationTween(
-                begin: BoxDecoration(
-                  color: Colors.transparent,
-                  shape: BoxShape.circle,
-                  border: Border.all(color: const Color(0xFFEF5353), width: 2.0),
-                ),
-                end: BoxDecoration(
-                  color: Colors.transparent,
-                  shape: BoxShape.circle,
-                  border: Border.all(color: const Color(0xFFEF5353), width: widget.innerSize * 0.75),
-                ),
-              ).animate(CurvedAnimation(parent: _checkbox.view, curve: Curves.easeOut)),
-              child: Checkbox(
-                value: _agreed,
-                activeColor: Colors.transparent,
-                onChanged: (b) {
-                  if (b) {
-                    _checkbox.animateTo(1.0, duration: const Duration(milliseconds: 200));
-                  } else {
-                    _checkbox.animateTo(0.0, duration: const Duration(milliseconds: 200));
-                  }
-                  setState(() => _agreed = b);
-                  if (widget.onChanged != null) {
-                    widget.onChanged(b);
-                  }
-                },
+          child: DecoratedBoxTransition(
+            decoration: DecorationTween(
+              begin: BoxDecoration(
+                color: Colors.transparent,
+                shape: BoxShape.circle,
+                border: Border.all(color: const Color(0xFFEF5353), width: 2.0),
               ),
+              end: BoxDecoration(
+                color: Colors.transparent,
+                shape: BoxShape.circle,
+                border: Border.all(color: const Color(0xFFEF5353), width: 28),
+              ),
+            ).animate(CurvedAnimation(parent: _checkbox.view, curve: Curves.easeOut)),
+            child: Checkbox(
+              value: _agreed,
+              activeColor: Colors.transparent,
+              onChanged: (b) {
+                if (b) {
+                  _checkbox.animateTo(1.0, duration: const Duration(milliseconds: 200));
+                } else {
+                  _checkbox.animateTo(0.0, duration: const Duration(milliseconds: 200));
+                }
+                setState(() => _agreed = b);
+                if (widget.onChanged != null) {
+                  widget.onChanged(b);
+                }
+              },
             ),
           ),
         ),

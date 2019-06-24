@@ -6,9 +6,10 @@ import 'package:irenti/repository/catalog_repository.dart';
 const int _kCount = 20;
 
 class CatalogBloc extends Bloc<CatalogEvent, CatalogState> {
+  final String userId;
   final CatalogRepository _catalogRepository;
 
-  CatalogBloc({@required CatalogRepository catalogRepository})
+  CatalogBloc({@required CatalogRepository catalogRepository, this.userId})
       : assert(catalogRepository != null),
         _catalogRepository = catalogRepository;
 
@@ -22,6 +23,7 @@ class CatalogBloc extends Bloc<CatalogEvent, CatalogState> {
         final state = currentState;
         if (state is LoadedState && !state.hasMore) return;
         final data = await _catalogRepository.fetchData(
+          uid: userId,
           ids: event.ids,
           offset: state is LoadedState && event.ids == null ? state.entries.length : 0,
           count: _kCount,

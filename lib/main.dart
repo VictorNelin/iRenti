@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:bloc/bloc.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:irenti/bloc/auth_bloc.dart';
+import 'package:irenti/repository/catalog_repository.dart';
 import 'package:irenti/repository/messages_repository.dart';
 import 'package:irenti/repository/user_repository.dart';
 
@@ -34,7 +35,7 @@ void main() {
   if (kReleaseMode) {
     debugPrint = (_, {wrapWidth}) {};
   }
-  BlocSupervisor().delegate = SimpleBlocDelegate();
+  BlocSupervisor.delegate = SimpleBlocDelegate();
   runApp(App());
 }
 
@@ -45,6 +46,7 @@ class App extends StatefulWidget {
 
 class _AppState extends State<App> {
   final UserRepository _userRepository = UserRepository();
+  final CatalogRepository _catalogRepository = CatalogRepository();
   final MessagesRepository _messagesRepository = MessagesRepository();
   AuthenticationBloc _authenticationBloc;
 
@@ -64,7 +66,7 @@ class _AppState extends State<App> {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      bloc: _authenticationBloc,
+      builder: (_) => _authenticationBloc,
       child: MaterialApp(
         title: 'iRenti',
         theme: ThemeData(
@@ -127,7 +129,7 @@ class _AppState extends State<App> {
           '/login': (ctx) => LoginPage(userRepository: _userRepository),
           '/register': (ctx) => RegisterPage(userRepository: _userRepository),
           '/profile': (ctx) => ProfilePage(),
-          '/catalog': (ctx) => CatalogPage(),
+          '/catalog': (ctx) => CatalogPage(catalogRepository: _catalogRepository),
         },
         onGenerateRoute: (settings) {
           if (settings.name == '/main') {
@@ -148,9 +150,9 @@ class _AppState extends State<App> {
                 tabBuilder: (ctx, i) {
                   switch (i) {
                     case 0:
-                      return CatalogPage();
+                      return CatalogPage(catalogRepository: _catalogRepository);
                     case 1:
-                      return CatalogPage(favorites: true);
+                      return CatalogPage(catalogRepository: _catalogRepository, favorites: true);
                     case 2:
                       return DialogsPage(messagesRepository: _messagesRepository);
                     case 3:

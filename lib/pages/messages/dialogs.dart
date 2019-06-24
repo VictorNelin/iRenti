@@ -25,7 +25,7 @@ class _DialogsPageState extends State<DialogsPage> {
   @override
   void initState() {
     super.initState();
-    _messagesBloc = MessagesBloc(messagesRepository: widget._messagesRepository);
+    _messagesBloc = MessagesBloc(messagesRepository: _messagesRepository);
     var authState = BlocProvider.of<AuthenticationBloc>(context).currentState;
     if (authState is Authenticated) {
       _uid = authState.user.uid;

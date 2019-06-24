@@ -89,6 +89,16 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
       } catch (_) {}
     }
   }
+
+  @override
+  void dispose() {
+    _userRepository.getUser().then((user) {
+      if (user != null && (user.email == null || user.email.isEmpty)) {
+        _userRepository.signOut();
+      }
+    });
+    super.dispose();
+  }
 }
 
 @immutable

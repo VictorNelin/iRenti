@@ -14,13 +14,12 @@ class MessagesRepository {
       : _firestore = firestore ?? Firestore.instance;
 
   Future<List<Conversation>> fetchDialogs(String userId) async {
-    QuerySnapshot q = await _firestore.collection('chats').getDocuments();
+    QuerySnapshot q = await _firestore.collection('chats').where('userIds', arrayContains: userId).getDocuments();
     List<Conversation> entries = [
       for (DocumentSnapshot doc in q.documents)
         Conversation.fromMap(doc.reference.path.split('/').last, doc.data),
     ];
     return await Future.wait(entries
-        .where((c) => c.userIds.contains(userId))
         .map((entry) => _loadedConversation(entry, _firestore)));
   }
 

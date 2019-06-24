@@ -21,7 +21,7 @@ class CatalogRepository {
   CatalogRepository({MySqlConnection db, Firestore firestore})
       : _db = db, _firestore = firestore ?? Firestore.instance;
 
-  Future<List<CatalogEntry>> fetchData({List<String> ids, int count, int offset = 0}) async {
+  Future<List<CatalogEntry>> fetchData({String uid, List<String> ids, int count, int offset = 0}) async {
     _db ??= await MySqlConnection.connect(_kDbSettings);
     String query = 'select * from datapars '
         '${ids != null ? 'where id in (${ids.isEmpty ? '-1' : ids.join(',')}) ' : ''}'
@@ -33,18 +33,18 @@ class CatalogRepository {
       for (Row row in q)
         CatalogEntry.fromMap(row['id'].toString(), row.fields),
     ];
-    return await Future.wait(entries.map((entry) => _loaded(entry, _firestore)));
+    return await Future.wait(entries.map((entry) => _loaded(entry, _firestore, uid)));
   }
 
-  Future<CatalogEntry> _loaded(CatalogEntry on, Firestore firestore) async {
-    var snaps = await Future.wait(on.neighborIds.map((ref) => firestore.collection('users').document(ref).get()));
+  Future<CatalogEntry> _loaded(CatalogEntry on, Firestore firestore, String uid) async {
+    var snaps = (await _firestore.collection('users').where('fave', arrayContains: on.id).getDocuments()).documents;
     List<UserData> users = [
-      for (DocumentSnapshot doc in snaps)
+      for (DocumentSnapshot doc in snaps.where((s) => s.documentID != uid))
         UserData(
           id: doc.reference.path.split('/').last,
           displayName: doc.data['display_name'],
           photoUrl: doc.data['ava_url'],
-          data: doc.data['profile'].map((v) => v is Timestamp ? v.toDate() : v).toList(growable: false),
+          data: doc.data['profile']?.map((v) => v is Timestamp ? v.toDate() : v)?.toList(growable: false),
         ),
     ];
     return CatalogEntry(
