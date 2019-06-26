@@ -26,9 +26,8 @@ const List<String> _months = <String>[
 class DialogPage extends StatefulWidget {
   final String dialogId;
   final String title;
-  final MessagesBloc messagesBloc;
 
-  const DialogPage({Key key, this.dialogId, this.title, this.messagesBloc}) : super(key: key);
+  const DialogPage({Key key, this.dialogId, this.title}) : super(key: key);
 
   @override
   _DialogPageState createState() => _DialogPageState();
@@ -41,13 +40,12 @@ class _DialogPageState extends State<DialogPage> {
   String _uid;
   String _startedId;
 
+  MessagesBloc get _messagesBloc => BlocProvider.of<MessagesBloc>(context);
+
   @override
   void initState() {
     super.initState();
-    var authState = BlocProvider.of<AuthenticationBloc>(context).currentState;
-    if (authState is Authenticated) {
-      _uid = authState.user.uid;
-    }
+    _uid = (BlocProvider.of<AuthenticationBloc>(context).currentState as Authenticated).user.uid;
   }
 
   String get _desc {
@@ -264,9 +262,9 @@ class _DialogPageState extends State<DialogPage> {
         children: <Widget>[
           Expanded(
             child: BlocBuilder<MessagesEvent, MessagesState>(
-              bloc: widget.messagesBloc,
+              bloc: _messagesBloc,
               builder: (ctx, state) {
-                if (state is LoadedState) {
+                if (state is MessagesLoadedState) {
                   Conversation chat = state.entries.singleWhere((c) => c.id == widget.dialogId);
                   _startedId = chat.startedById;
                   if ((_lastLength ?? 0) != chat.messages.length) {
@@ -328,7 +326,7 @@ class _DialogPageState extends State<DialogPage> {
           _ReplyField(
             onMessage: (msg) {
               _sender = Completer();
-              widget.messagesBloc.dispatch(MessagesSendEvent(_uid, widget.dialogId, msg));
+              _messagesBloc.dispatch(MessagesSendEvent(_uid, widget.dialogId, msg));
               return _sender.future;
             },
           ),

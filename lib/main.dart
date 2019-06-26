@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:bloc/bloc.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:irenti/bloc/auth_bloc.dart';
+import 'package:irenti/bloc/messages_bloc.dart';
 import 'package:irenti/repository/catalog_repository.dart';
 import 'package:irenti/repository/messages_repository.dart';
 import 'package:irenti/repository/user_repository.dart';
@@ -49,12 +50,14 @@ class _AppState extends State<App> {
   final CatalogRepository _catalogRepository = CatalogRepository();
   final MessagesRepository _messagesRepository = MessagesRepository();
   AuthenticationBloc _authenticationBloc;
+  MessagesBloc _messagesBloc;
 
   @override
   void initState() {
     super.initState();
     _authenticationBloc = AuthenticationBloc(userRepository: _userRepository);
     _authenticationBloc.dispatch(AppStarted());
+    _messagesBloc = MessagesBloc(messagesRepository: _messagesRepository);
   }
 
   @override
@@ -65,8 +68,11 @@ class _AppState extends State<App> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      builder: (_) => _authenticationBloc,
+    return BlocProviderTree(
+      blocProviders: [
+        BlocProvider<AuthenticationBloc>(builder: (_) => _authenticationBloc),
+        BlocProvider<MessagesBloc>(builder: (_) => _messagesBloc),
+      ],
       child: MaterialApp(
         title: 'iRenti',
         theme: ThemeData(
@@ -114,15 +120,16 @@ class _AppState extends State<App> {
         home: BlocBuilder(
           bloc: _authenticationBloc,
           builder: (context, state) {
-            if (state is Uninitialized) {
-              return Material(child: SizedBox.expand());
-            }
             if (state is Unauthenticated) {
               return WelcomePage();
-            } else {
-              WidgetsBinding.instance.addPostFrameCallback((_) => Navigator.pushReplacementNamed(context, '/main'));
-              return Material(child: SizedBox.expand());
             }
+            if (state is Authenticated) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                _messagesBloc.dispatch(MessagesInitEvent(state.user.uid));
+                Navigator.pushReplacementNamed(context, '/main');
+              });
+            }
+            return Material(child: SizedBox.expand());
           },
         ),
         routes: {
@@ -141,10 +148,45 @@ class _AppState extends State<App> {
                   activeColor: const Color(0x80ffffff),
                   inactiveColor: const Color(0xffffffff),
                   items: [
-                    BottomNavigationBarItem(icon: Icon(Icons.home)),
-                    BottomNavigationBarItem(icon: Icon(Icons.star)),
-                    BottomNavigationBarItem(icon: Icon(Icons.message)),
-                    BottomNavigationBarItem(icon: Icon(Icons.person)),
+                    const BottomNavigationBarItem(icon: Icon(Icons.home)),
+                    const BottomNavigationBarItem(icon: Icon(Icons.star)),
+                    BottomNavigationBarItem(
+                      icon: Stack(
+                        overflow: Overflow.visible,
+                        children: <Widget>[
+                          const Icon(Icons.message),
+                          BlocBuilder(
+                            bloc: _messagesBloc,
+                            builder: (ctx, state) {
+                              if (state is MessagesLoadedState) {
+                                return Positioned(
+                                  top: -4,
+                                  right: -4,
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: const Color(0xFFEF5353),
+                                    ),
+                                    alignment: Alignment.center,
+                                    width: 16,
+                                    height: 16,
+                                    child: Text(
+                                      state.unreadCount.toString(),
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              }
+                              return const SizedBox.shrink();
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                    const BottomNavigationBarItem(icon: Icon(Icons.person)),
                   ],
                 ),
                 tabBuilder: (ctx, i) {
@@ -154,7 +196,7 @@ class _AppState extends State<App> {
                     case 1:
                       return CatalogPage(catalogRepository: _catalogRepository, favorites: true);
                     case 2:
-                      return DialogsPage(messagesRepository: _messagesRepository);
+                      return DialogsPage();
                     case 3:
                       return ProfilePage();
                   }
@@ -180,7 +222,6 @@ class _AppState extends State<App> {
               builder: (ctx) => DialogPage(
                 dialogId: args['id'],
                 title: args['title'],
-                messagesBloc: args['bloc'],
               ),
             );
           }

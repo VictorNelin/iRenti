@@ -8,16 +8,20 @@ class Conversation {
   final List<String> userIds;
   final List<UserData> users;
   final String startedById;
+  final int startedOn;
+  final bool read;
   final List<CatalogEntry> data;
   final List<Message> messages;
 
-  const Conversation({this.id, this.userIds, this.startedById, this.data, this.messages = const [], this.users});
+  const Conversation({this.id, this.userIds, this.startedById, this.startedOn, this.read, this.data, this.messages = const [], this.users});
 
   factory Conversation.fromMap(String id, Map<String, dynamic> src) {
     return Conversation(
       id: id,
       userIds: List.from(src['userIds']),
       startedById: src['startedById'],
+      startedOn: src['startedOn'],
+      read: src['read'],
       data: List.from(src['data'].map((l) => CatalogEntry.fromMap(null, Map.from(l)))),
       messages: List.from(src['messages'].map((l) => Message.fromMap(Map.from(l)))),
     );

@@ -23,22 +23,21 @@ class MessagesRepository {
         .map((entry) => _loadedConversation(entry, _firestore)));
   }
 
-  Map<String, Stream<Conversation>> getStreams(Iterable<String> dialogIds) {
-    Map<String, Stream<Conversation>> streams = Map();
-    for (String s in dialogIds) {
-      streams[s] = (_firestore.collection('chats').document(s).snapshots().transform(
-        StreamTransformer.fromHandlers(
-          handleData: (DocumentSnapshot doc, sink) async {
-            sink.add(await _loadedConversation(
-              Conversation.fromMap(doc.reference.path.split('/').last, doc.data),
-              _firestore,
-            ));
-          },
-          handleDone: (sink) => sink.close(),
+  List<Stream<Conversation>> getStreams(Iterable<String> dialogIds) {
+    return [
+      for (String s in dialogIds)
+        _firestore.collection('chats').document(s).snapshots().transform(
+          StreamTransformer.fromHandlers(
+            handleData: (DocumentSnapshot doc, sink) async {
+              sink.add(await _loadedConversation(
+                Conversation.fromMap(doc.reference.path.split('/').last, doc.data),
+                _firestore,
+              ));
+            },
+            handleDone: (sink) => sink.close(),
+          ),
         ),
-      ));
-    }
-    return streams;
+    ];
   }
 
   Future<void> sendMessage(String dialogId, String userId, String text) async {
@@ -54,6 +53,25 @@ class MessagesRepository {
     await doc.setData(data, merge: true);
   }
 
+  Future<Conversation> createDialog(String userId, String opId, Map<String, dynamic> data) async {
+    var existing = await _firestore.collection('chats')
+        .where('startedById', isEqualTo: userId)
+        .where('userIds', arrayContains: opId)
+        .getDocuments();
+    if (existing.documents.isNotEmpty) return null;
+    Map<String, dynamic> d = {
+      'userIds': [userId, opId],
+      'startedById': userId,
+      'startedOn': DateTime.now().millisecondsSinceEpoch,
+      'read': true,
+      'data': [data],
+      'messages': const <Map<String, dynamic>>[],
+    };
+    DocumentReference ref = _firestore.collection('chats').document();
+    await ref.setData(d);
+    return Conversation.fromMap(ref.path.split('/').last, d);
+  }
+
   Future<Conversation> _loadedConversation(Conversation on, Firestore firestore) async {
     List<DocumentSnapshot> snaps = await Future.wait(on.userIds.map((ref) => firestore.collection('users').document(ref).get()));
     List<UserData> users = [
@@ -62,7 +80,7 @@ class MessagesRepository {
           id: doc.reference.path.split('/').last,
           displayName: doc.data['display_name'],
           photoUrl: doc.data['ava_url'],
-          data: doc.data['profile'].map((v) => v is Timestamp ? v.toDate() : v).toList(growable: false),
+          data: doc.data['profile']?.map((v) => v is Timestamp ? v.toDate() : v)?.toList(growable: false),
         ),
     ];
     return Conversation(

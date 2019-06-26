@@ -5,32 +5,19 @@ import 'package:irenti/bloc/messages_bloc.dart';
 import 'package:irenti/repository/messages_repository.dart';
 
 class DialogsPage extends StatefulWidget {
-  final MessagesRepository _messagesRepository;
-
-  DialogsPage({Key key, @required MessagesRepository messagesRepository})
-      : assert(messagesRepository != null),
-        _messagesRepository = messagesRepository,
-        super(key: key);
-
   @override
   _DialogsPageState createState() => _DialogsPageState();
 }
 
 class _DialogsPageState extends State<DialogsPage> {
-  MessagesBloc _messagesBloc;
   String _uid;
 
-  MessagesRepository get _messagesRepository => widget._messagesRepository;
+  MessagesBloc get _messagesBloc => BlocProvider.of<MessagesBloc>(context);
 
   @override
   void initState() {
     super.initState();
-    _messagesBloc = MessagesBloc(messagesRepository: _messagesRepository);
-    var authState = BlocProvider.of<AuthenticationBloc>(context).currentState;
-    if (authState is Authenticated) {
-      _uid = authState.user.uid;
-      _messagesBloc.dispatch(MessagesInitEvent(_uid));
-    }
+    _uid = (BlocProvider.of<AuthenticationBloc>(context).currentState as Authenticated).user.uid;
   }
 
   @override
@@ -77,7 +64,7 @@ class _DialogsPageState extends State<DialogsPage> {
           BlocBuilder<MessagesEvent, MessagesState>(
             bloc: _messagesBloc,
             builder: (context, state) {
-              if (state is LoadedState) {
+              if (state is MessagesLoadedState) {
                 return SliverFixedExtentList(
                   delegate: SliverChildBuilderDelegate((ctx, i) {
                     Conversation entry = state.entries[i];
@@ -85,7 +72,6 @@ class _DialogsPageState extends State<DialogsPage> {
                       onTap: () => Navigator.pushNamed(context, '/dialog', arguments: {
                         'id': entry.id,
                         'title': entry.op(_uid).displayName,
-                        'bloc': _messagesBloc,
                       }),
                       child: Container(
                         height: 60,

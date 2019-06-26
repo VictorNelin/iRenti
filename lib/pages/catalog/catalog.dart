@@ -6,6 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flushbar/flushbar.dart';
 import 'package:irenti/bloc/auth_bloc.dart';
 import 'package:irenti/bloc/catalog_bloc.dart';
+import 'package:irenti/bloc/messages_bloc.dart';
 import 'package:irenti/repository/catalog_repository.dart';
 import 'package:irenti/widgets/checkbox.dart';
 
@@ -35,6 +36,7 @@ class _CatalogPageState extends State<CatalogPage> with SingleTickerProviderStat
   String _selectedId;
   OverlayEntry _dialogOverlay;
   LocalHistoryEntry _selection;
+  bool _creating = false;
 
   CatalogRepository get _catalogRepository => widget._catalogRepository;
 
@@ -63,8 +65,8 @@ class _CatalogPageState extends State<CatalogPage> with SingleTickerProviderStat
     super.dispose();
   }
 
-  void _selectId(String userId) {
-    if (_selectedId == userId || userId == null) {
+  void _selectId(UserData user, CatalogEntry entry) {
+    if (_selectedId == user.id || user == null) {
       _selection.remove();
       _selection = null;
     } else {
@@ -75,14 +77,76 @@ class _CatalogPageState extends State<CatalogPage> with SingleTickerProviderStat
           bottom: 0,
           height: 50,
           child: Material(
-            color: const Color(0xFFEF5353),
+            color: _creating ? CupertinoColors.inactiveGray : const Color(0xFFEF5353),
             child: InkWell(
-              onTap: () {
-
+              onTap: _creating ? null : () async {
+                _creating = true;
+                _dialogOverlay.markNeedsBuild();
+                await BlocProvider.of<MessagesBloc>(context).createChat(_uid, user.id, entry.toMap());
+                _creating = false;
+                _dialogOverlay.remove();
+                _dialogOverlay = null;
+                showModalBottomSheet(
+                  context: context,
+                  builder: (ctx) => Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: <Widget>[
+                        Text(
+                          '«ПРИВЕТ!»',
+                          style: Theme.of(context).textTheme.headline,
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          'Создан новый чат\nс пользователем ${user.displayName}',
+                          style: Theme.of(context).textTheme.title,
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          'Вы обсуждаете:\n"${entry.titleFormatted}"',
+                          style: Theme.of(context).textTheme.body1.copyWith(
+                            color: const Color(0xff272d30).withOpacity(0.7),
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 12),
+                        FlatButton(
+                          color: const Color(0xFFEF5353),
+                          onPressed: () {
+                            Navigator.pop(ctx);
+                            _selection?.remove();
+                            _selection = null;
+                          },
+                          shape: StadiumBorder(),
+                          child: Text('ПРОДОЛЖИТЬ ПОИСК'),
+                        ),
+                        FlatButton(
+                          onPressed: () {
+                            Navigator.pop(ctx);
+                            _selection?.remove();
+                            _selection = null;
+                            Navigator.pushNamed(context, '/dialog', arguments: {
+                              'id': entry.id,
+                              'title': user.displayName,
+                            });
+                          },
+                          child: Text('ПЕРЕЙТИ В ЧАТ'),
+                        ),
+                      ],
+                    ),
+                  ),
+                  shape: const RoundedRectangleBorder(
+                    borderRadius: BorderRadius.vertical(top: Radius.circular(10)),
+                  ),
+                );
               },
-              child: Container(
+              child: Align(
                 alignment: Alignment.center,
-                child: Text('HELLO', style: Theme.of(context).textTheme.button),
+                child: Text('СКАЗАТЬ «ПРИВЕТ!»', style: Theme.of(context).textTheme.button),
               ),
             ),
           ),
@@ -100,7 +164,7 @@ class _CatalogPageState extends State<CatalogPage> with SingleTickerProviderStat
       }
       ModalRoute.of(context).addLocalHistoryEntry(_selection);
       setState(() {
-        _selectedId = userId;
+        _selectedId = user.id;
       });
     }
   }
@@ -240,7 +304,7 @@ class _CatalogPageState extends State<CatalogPage> with SingleTickerProviderStat
                                               height: 50,
                                               child: GestureDetector(
                                                 onTap: () {
-                                                  _selectId(user.id);
+                                                  _selectId(user, e);
                                                 },
                                                 child: Stack(
                                                   alignment: Alignment.center,

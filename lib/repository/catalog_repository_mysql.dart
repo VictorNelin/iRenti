@@ -58,7 +58,6 @@ class CatalogRepository {
       address: on.address,
       photos: on.photos,
       location: on.location,
-      neighborIds: on.neighborIds,
       neighbors: users,
       description: on.description,
       conditions: on.conditions,

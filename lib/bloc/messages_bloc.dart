@@ -9,7 +9,6 @@ import 'package:irenti/repository/messages_repository.dart';
 
 class MessagesBloc extends Bloc<MessagesEvent, MessagesState> {
   final MessagesRepository _messagesRepository;
-  Map<String, Stream<Conversation>> _chatStreams;
   StreamSubscription _allSub;
 
   MessagesBloc({@required MessagesRepository messagesRepository})
@@ -19,28 +18,51 @@ class MessagesBloc extends Bloc<MessagesEvent, MessagesState> {
   @override
   MessagesState get initialState => EmptyState();
 
-  LoadedState _sortedLoaded(List<Conversation> dialogs) {
-    dialogs = List.from(dialogs)..sort((a, b) => b.messages.last.timestamp.compareTo(a.messages.last.timestamp));
-    return LoadedState(dialogs);
+  MessagesLoadedState _sortedLoaded(String uid, List<Conversation> dialogs) {
+    dialogs = List.from(dialogs)..sort((a, b) {
+      int aLast, bLast;
+      try {
+        aLast = a.messages.last.timestamp;
+      } catch (_) {
+        aLast = a.startedOn ?? 0;
+      }
+      try {
+        bLast = b.messages.last.timestamp;
+      } catch (_) {
+        bLast = b.startedOn ?? 0;
+      }
+      return bLast.compareTo(aLast);
+    });
+    return MessagesLoadedState(uid, dialogs);
   }
 
   @override
   Stream<MessagesState> mapEventToState(MessagesEvent event) async* {
+    final MessagesState state = currentState;
     try {
       if (event is MessagesInitEvent) {
         List<Conversation> chats = await _messagesRepository.fetchDialogs(event.userId);
-        yield _sortedLoaded(chats);
-        _chatStreams = _messagesRepository.getStreams(chats.map((c) => c.id));
-        _allSub = StreamZip(_chatStreams.values).listen((data) {
-          dispatch(_MessagesSetEvent(data));
+        yield _sortedLoaded(event.userId, chats);
+        _allSub = StreamZip(_messagesRepository.getStreams(chats.map((c) => c.id))).listen((data) {
+          dispatch(_MessagesSetEvent(event.userId, data));
         }, onDone: () {
           _allSub?.cancel();
           _allSub = null;
         });
       } else if (event is _MessagesSetEvent) {
-        yield _sortedLoaded(event.dialogs);
+        yield _sortedLoaded(event.userId, event.dialogs);
       } else if (event is MessagesSendEvent) {
         _messagesRepository.sendMessage(event.chatId, event.userId, event.text);
+      } else if (event is MessagesCreateEvent && state is MessagesLoadedState) {
+        List<Conversation> chats = state.entries + [event.chat];
+        yield _sortedLoaded(event.chat.startedById, chats);
+        _allSub?.cancel();
+        _allSub = StreamZip(_messagesRepository.getStreams(chats.map((c) => c.id))).listen((data) {
+          dispatch(_MessagesSetEvent(event.chat.startedById, data));
+        }, onDone: () {
+          _allSub?.cancel();
+          _allSub = null;
+        });
       }
     } on Error catch (e) {
       print(e);
@@ -53,6 +75,12 @@ class MessagesBloc extends Bloc<MessagesEvent, MessagesState> {
   void dispose() {
     _allSub?.cancel();
     super.dispose();
+  }
+
+  Future<String> createChat(String userId, String opId, Map<String, dynamic> data) async {
+    Conversation chat = await _messagesRepository.createDialog(userId, opId, data);
+    dispatch(MessagesCreateEvent(chat));
+    return chat.id;
   }
 }
 
@@ -84,10 +112,13 @@ class ErrorState extends MessagesState {
 }
 
 @immutable
-class LoadedState extends MessagesState {
+class MessagesLoadedState extends MessagesState {
+  final String uid;
   final List<Conversation> entries;
 
-  LoadedState(this.entries) : super(entries);
+  MessagesLoadedState(this.uid, this.entries) : super(<dynamic>[uid, ...entries]);
+
+  int get unreadCount => entries.fold(0, (i, c) => c.messages.any((m) => !m.out(uid) && !m.read) ? i + 1 : i);
 
   @override
   String toString() => 'LoadedState { entries: $entries }';
@@ -113,9 +144,10 @@ class MessagesInitEvent extends MessagesEvent {
 
 @immutable
 class _MessagesSetEvent extends MessagesEvent {
+  final String userId;
   final List<Conversation> dialogs;
 
-  _MessagesSetEvent(this.dialogs) : super(dialogs.toList(growable: false));
+  _MessagesSetEvent(this.userId, this.dialogs) : super(<dynamic>[userId, ...dialogs]);
 }
 
 @immutable
@@ -125,4 +157,11 @@ class MessagesSendEvent extends MessagesEvent {
   final String text;
 
   MessagesSendEvent(this.userId, this.chatId, this.text) : super([userId, chatId, text]);
+}
+
+@immutable
+class MessagesCreateEvent extends MessagesEvent {
+  final Conversation chat;
+
+  MessagesCreateEvent(this.chat) : super([chat]);
 }

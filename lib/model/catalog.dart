@@ -14,7 +14,6 @@ class CatalogEntry {
   final String address;
   final List<String> photos;
   final List<double> location;
-  final List<String> neighborIds;
   final List<UserData> neighbors;
   final String description;
   final String conditions;
@@ -32,7 +31,6 @@ class CatalogEntry {
     this.address,
     this.photos,
     this.location,
-    this.neighborIds,
     this.neighbors,
     this.description,
     this.conditions,
@@ -52,7 +50,6 @@ class CatalogEntry {
       address: src['address']?.toString(),
       photos: (src['imgs']?.toString() ?? '').split(','),
       location: src['geodata']?.toString()?.split(',')?.map((s) => double.tryParse(s))?.toList(growable: false),
-      neighborIds: List.from(src['neighbors'] ?? []),
       description: src['description']?.toString(),
       conditions: src['conditions']?.toString(),
       owner: src['authorname']?.toString(),
@@ -71,11 +68,10 @@ class CatalogEntry {
     'address': address,
     'imgs': photos.join(','),
     'geodata': location.join(','),
-    'neighbors': neighborIds.join(','),
     'description': description,
     'conditions': conditions,
     'authorname': owner,
-    'allphones': phones.join(','),
+    'allphones': phones?.join(',') ?? '',
   };
 
   String get costFormatted {
@@ -105,7 +101,6 @@ class CatalogEntry {
     address,
     photos,
     location,
-    neighborIds,
     neighbors,
     description,
     conditions,
