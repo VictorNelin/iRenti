@@ -6,6 +6,8 @@ import 'package:irenti/model/user.dart';
 export 'package:irenti/model/catalog.dart';
 export 'package:irenti/model/user.dart';
 
+const List<int> _kCounts = [5, 3, 2, 3, 2];
+
 final ConnectionSettings _kDbSettings = ConnectionSettings(
   host: 'hodlyard.com',
   port: 3306,
@@ -21,22 +23,21 @@ class CatalogRepository {
   CatalogRepository({MySqlConnection db, Firestore firestore})
       : _db = db, _firestore = firestore ?? Firestore.instance;
 
-  Future<List<CatalogEntry>> fetchData({String uid, List<String> ids, int count, int offset = 0}) async {
+  Future<List<CatalogEntry>> fetchData({String uid, List<dynamic> profile, List<String> ids, int count, int offset = 0}) async {
     _db ??= await MySqlConnection.connect(_kDbSettings);
     String query = 'select * from datapars '
         '${ids != null ? 'where id in (${ids.isEmpty ? '-1' : ids.join(',')}) ' : ''}'
         'order by id asc'
         '${ids == null ? ' limit ${offset ?? 0},$count' : ''};';
-    //print(query);
     Results q = await _db.query(query);
     List<CatalogEntry> entries = [
       for (Row row in q)
         CatalogEntry.fromMap(row['id'].toString(), row.fields),
     ];
-    return await Future.wait(entries.map((entry) => _loaded(entry, _firestore, uid)));
+    return await Future.wait(entries.map((entry) => _loaded(entry, _firestore, uid, profile)));
   }
 
-  Future<CatalogEntry> _loaded(CatalogEntry on, Firestore firestore, String uid) async {
+  Future<CatalogEntry> _loaded(CatalogEntry on, Firestore firestore, String uid, List<dynamic> profile) async {
     var snaps = (await _firestore.collection('users').where('fave', arrayContains: on.id).getDocuments()).documents;
     List<UserData> users = [
       for (DocumentSnapshot doc in snaps.where((s) => s.documentID != uid))
@@ -47,6 +48,20 @@ class CatalogRepository {
           data: doc.data['profile']?.map((v) => v is Timestamp ? v.toDate() : v)?.toList(growable: false),
         ),
     ];
+    if (profile.length == 7) profile = profile.skip(2).toList(growable: false);
+    List<double> ratings = List.from(users.map<double>((u) {
+      if (u.data == null || u.data.isEmpty) return 0;
+      double rating = 0;
+      var data = u.data.skip(2).toList(growable: false);
+      for (int i = 0; i < 5; ++i) {
+        final pData = profile[i];
+        if (pData is num) {
+          rating += _kCounts[i] / (_kCounts[i] - (data[i] - pData).abs());
+        }
+      }
+      return rating;
+    }));
+    users.sort((u1, u2) => ratings[users.indexOf(u2)].compareTo(ratings[users.indexOf(u1)]));
     return CatalogEntry(
       id: on.id,
       type: on.type,

@@ -153,6 +153,4 @@ class UserRepository {
     await _firestore.collection('users').document(uid).setData({'fave': faveIds}, merge: true);
     return faveIds;
   }
-
-
 }

@@ -24,6 +24,7 @@ class CatalogBloc extends Bloc<CatalogEvent, CatalogState> {
         if (state is LoadedState && !state.hasMore) return;
         final data = await _catalogRepository.fetchData(
           uid: userId,
+          profile: event.profile,
           ids: event.ids,
           offset: state is LoadedState && event.ids == null ? state.entries.length : 0,
           count: _kCount,
@@ -81,7 +82,8 @@ class LoadedState extends CatalogState {
 
 @immutable
 class CatalogEvent extends Equatable {
+  final List<dynamic> profile;
   final List<String> ids;
 
-  CatalogEvent([this.ids]) : super(ids ?? []);
+  CatalogEvent({this.profile, this.ids}) : super([if (profile != null) ...profile, if (ids != null) ...ids]);
 }

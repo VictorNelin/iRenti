@@ -30,6 +30,7 @@ class CatalogPage extends StatefulWidget {
 class _CatalogPageState extends State<CatalogPage> with SingleTickerProviderStateMixin {
   final ScrollController _scroller = ScrollController();
   String _uid;
+  List<dynamic> _profile;
   CatalogBloc _bloc;
   int _count = 0;
   bool _canFetch = false;
@@ -43,17 +44,24 @@ class _CatalogPageState extends State<CatalogPage> with SingleTickerProviderStat
   @override
   void initState() {
     super.initState();
-    var authState = BlocProvider.of<AuthenticationBloc>(context).currentState;
+    final authBloc = BlocProvider.of<AuthenticationBloc>(context);
+    authBloc.state.listen((state) {
+      if (state is Authenticated) {
+        _profile = state.data;
+      }
+    });
+    final authState = authBloc.currentState;
     if (authState is Authenticated) {
       _uid = authState.user.uid;
+      _profile = authState.data;
     }
     _bloc = CatalogBloc(catalogRepository: _catalogRepository, userId: _uid);
-    _bloc.dispatch(CatalogEvent(widget.favorites ? (authState as Authenticated).fave : null));
+    _bloc.dispatch(CatalogEvent(profile: _profile, ids: widget.favorites ? (authState as Authenticated).fave : null));
     if (!widget.favorites) {
       _scroller.addListener(() {
         if (_canFetch && (_scroller.offset / MediaQuery.of(context).size.height) >= _count * 0.8) {
           _canFetch = false;
-          _bloc.dispatch(CatalogEvent());
+          _bloc.dispatch(CatalogEvent(profile: _profile));
         }
       });
     }
