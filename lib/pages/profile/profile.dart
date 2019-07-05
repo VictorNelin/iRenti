@@ -3,7 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:irenti/bloc/auth_bloc.dart';
 import 'package:irenti/model/user.dart';
-import 'package:irenti/widgets/checkbox.dart';
+import 'package:irenti/widgets/radio_group.dart';
 import 'package:irenti/widgets/list_tile.dart';
 
 const List<String> _kTitles = ['Дата рождения', 'Род деятельности', 'График работы', 'Животные', 'Уборка', 'Отношение к курению', 'Вечеринки'];
@@ -134,23 +134,16 @@ class _ProfilePageState extends State<ProfilePage> {
                         textCapitalization: TextCapitalization.words,
                         onChanged: (s) => value = s,
                       ),
-                    ))
-                        : Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: _kData[i].map((s) {
-                        return ListTile(
-                          leading: RoundCheckbox(
-                            initial: _kData[i].indexOf(s) == value,
-                            onChanged: (b) {
-                              setPageState(() {
-                                value = b ? _kData[i].indexOf(s) : null;
-                              });
-                            },
-                          ),
-                          title: Text(s),
-                        );
-                      }).toList(growable: false),
+                    )) : RadioGroup(
+                      titles: _kData[i],
+                      value: value,
+                      onChanged: (b) {
+                        setPageState(() {
+                          value = b;
+                        });
+                      },
+                      allowNullValue: true,
+                      showDividers: true,
                     ),
                     SizedBox(height: MediaQuery.of(ctx).viewInsets.bottom),
                   ],

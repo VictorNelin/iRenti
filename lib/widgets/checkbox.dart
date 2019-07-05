@@ -1,21 +1,19 @@
 import 'package:flutter/material.dart';
 
 class RoundCheckbox extends StatefulWidget {
-  final bool initial;
+  final bool value;
   final ValueChanged<bool> onChanged;
-  final double outerSize;
-  final double innerSize;
+  final double size;
 
   const RoundCheckbox({
     Key key,
-    this.initial = false,
+    this.value = false,
     this.onChanged,
-    this.outerSize = 28.0,
-    this.innerSize = 28.0,
+    this.size = 20.0,
   }) : super(key: key);
 
   @override
-  _RoundCheckboxState createState() => _RoundCheckboxState(initial);
+  _RoundCheckboxState createState() => _RoundCheckboxState(value);
 }
 
 class _RoundCheckboxState extends State<RoundCheckbox> with SingleTickerProviderStateMixin {
@@ -37,13 +35,13 @@ class _RoundCheckboxState extends State<RoundCheckbox> with SingleTickerProvider
   @override
   void didUpdateWidget(RoundCheckbox oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.initial != oldWidget?.initial) {
-      if (widget.initial) {
+    if (widget.value != oldWidget?.value) {
+      if (widget.value) {
         _checkbox.animateTo(1.0, duration: const Duration(milliseconds: 200));
       } else {
         _checkbox.animateTo(0.0, duration: const Duration(milliseconds: 200));
       }
-      _agreed = widget.initial;
+      _agreed = widget.value;
     }
   }
 
@@ -55,7 +53,7 @@ class _RoundCheckboxState extends State<RoundCheckbox> with SingleTickerProvider
       ),
       child: ClipOval(
         child: SizedOverflowBox(
-          size: Size.square(widget.outerSize),
+          size: Size.square(widget.size),
           alignment: Alignment.center,
           child: DecoratedBoxTransition(
             decoration: DecorationTween(
@@ -73,17 +71,7 @@ class _RoundCheckboxState extends State<RoundCheckbox> with SingleTickerProvider
             child: Checkbox(
               value: _agreed,
               activeColor: Colors.transparent,
-              onChanged: (b) {
-                if (b) {
-                  _checkbox.animateTo(1.0, duration: const Duration(milliseconds: 200));
-                } else {
-                  _checkbox.animateTo(0.0, duration: const Duration(milliseconds: 200));
-                }
-                setState(() => _agreed = b);
-                if (widget.onChanged != null) {
-                  widget.onChanged(b);
-                }
-              },
+              onChanged: widget.onChanged,
             ),
           ),
         ),

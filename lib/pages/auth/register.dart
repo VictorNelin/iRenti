@@ -346,8 +346,8 @@ class _RegisterPageState extends State<RegisterPage> with SingleTickerProviderSt
                                 ListTile(
                                   enabled: _inputAllowed,
                                   leading: RoundCheckbox(
-                                    initial: false,
-                                    outerSize: 44.0,
+                                    value: _agreed,
+                                    size: 44.0,
                                     onChanged: (b) {
                                       setState(() => _agreed = b);
                                     },

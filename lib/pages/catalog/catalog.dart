@@ -333,8 +333,8 @@ class _CatalogPageState extends State<CatalogPage> with SingleTickerProviderStat
                                                           child: Material(
                                                             type: MaterialType.transparency,
                                                             child: RoundCheckbox(
-                                                              initial: true,
-                                                              outerSize: 20,
+                                                              value: true,
+                                                              size: 20,
                                                             ),
                                                           ),
                                                         ),
