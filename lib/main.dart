@@ -216,6 +216,7 @@ class _AppState extends State<App> {
           } else if (settings.name == '/catalog/filter') {
             return CupertinoPageRoute(
               builder: (ctx) => CatalogFilterPage(bloc: settings.arguments),
+              fullscreenDialog: true,
             );
           } else if (settings.name == '/catalog/profile') {
             return CupertinoPageRoute(
