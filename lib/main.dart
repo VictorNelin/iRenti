@@ -13,6 +13,7 @@ import 'pages/auth/welcome.dart';
 import 'pages/auth/login.dart';
 import 'pages/auth/register.dart';
 import 'pages/catalog/catalog.dart';
+import 'pages/catalog/catalog_filter.dart';
 import 'pages/catalog/catalog_info.dart';
 import 'pages/messages/dialogs.dart';
 import 'pages/messages/single_dialog.dart';
@@ -68,8 +69,8 @@ class _AppState extends State<App> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProviderTree(
-      blocProviders: [
+    return MultiBlocProvider(
+      providers: [
         BlocProvider<AuthenticationBloc>(builder: (_) => _authenticationBloc),
         BlocProvider<MessagesBloc>(builder: (_) => _messagesBloc),
       ],
@@ -212,6 +213,10 @@ class _AppState extends State<App> {
             return CupertinoPageRoute(
               builder: (ctx) => CatalogInfoPage(entry: settings.arguments),
             );
+          } else if (settings.name == '/catalog/filter') {
+            return CupertinoPageRoute(
+              builder: (ctx) => CatalogFilterPage(bloc: settings.arguments),
+            );
           } else if (settings.name == '/catalog/profile') {
             return CupertinoPageRoute(
               builder: (ctx) => ProfilePage(user: settings.arguments),
@@ -225,6 +230,7 @@ class _AppState extends State<App> {
               ),
             );
           }
+          return CupertinoPageRoute(builder: (_) => const SizedBox());
         },
       ),
     );

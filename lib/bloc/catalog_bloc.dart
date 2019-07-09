@@ -8,6 +8,10 @@ const int _kCount = 20;
 class CatalogBloc extends Bloc<CatalogEvent, CatalogState> {
   final String userId;
   final CatalogRepository _catalogRepository;
+  int _rooms;
+  double _priceLow;
+  double _priceHigh;
+  List<dynamic> _profile;
 
   CatalogBloc({@required CatalogRepository catalogRepository, this.userId})
       : assert(catalogRepository != null),
@@ -16,11 +20,23 @@ class CatalogBloc extends Bloc<CatalogEvent, CatalogState> {
   @override
   CatalogState get initialState => EmptyState();
 
+  int get roomsFilter => _rooms;
+  double get priceLowFilter => _priceLow;
+  double get priceHighFilter => _priceHigh;
+
+  Future<List<double>> get minMaxPrice => _catalogRepository.getMinMax();
+
+  void clearFilters() {
+    _rooms = null;
+    _priceLow = null;
+    _priceHigh = null;
+  }
+
   @override
   Stream<CatalogState> mapEventToState(CatalogEvent event) async* {
-    if (event is CatalogEvent) {
-      try {
-        final state = currentState;
+    final state = currentState;
+    try {
+      if (event is CatalogFetch) {
         if (state is LoadedState && !state.hasMore) return;
         final data = await _catalogRepository.fetchData(
           uid: userId,
@@ -28,16 +44,55 @@ class CatalogBloc extends Bloc<CatalogEvent, CatalogState> {
           ids: event.ids,
           offset: state is LoadedState && event.ids == null ? state.entries.length : 0,
           count: _kCount,
+          roomCol: _rooms,
+          priceLow: _priceLow,
+          priceHigh: _priceHigh,
         );
+        _profile = event.profile;
         yield LoadedState(
           state is LoadedState && event.ids == null ? state.entries + data : data,
           event.ids != null || data.length == _kCount,
         );
-      } on Error catch (e) {
-        print(e);
-        print(e.stackTrace);
-        yield ErrorState(e);
+      } else if (event is CatalogReload) {
+        yield EmptyState();
+        final data = await _catalogRepository.fetchData(
+          uid: userId,
+          profile: _profile,
+          offset: 0,
+          count: _kCount,
+          roomCol: _rooms,
+          priceLow: _priceLow,
+          priceHigh: _priceHigh,
+        );
+        yield LoadedState(
+          data,
+          event.ids != null || data.length == _kCount,
+        );
+      } else if (event is CatalogCountWith && state is LoadedState) {
+        yield LoadedState(
+          state.entries,
+          state.hasMore,
+          true,
+        );
+        _rooms = event.rooms;
+        _priceLow = event.priceLow;
+        _priceHigh = event.priceHigh;
+        final data = await _catalogRepository.countWith(
+          roomCol: event.rooms,
+          priceLow: event.priceLow,
+          priceHigh: event.priceHigh,
+        );
+        yield LoadedState(
+          state.entries,
+          state.hasMore,
+          false,
+          data,
+        );
       }
+    } on Error catch (e) {
+      print(e);
+      print(e.stackTrace);
+      yield ErrorState(e);
     }
   }
 }
@@ -73,17 +128,39 @@ class ErrorState extends CatalogState {
 class LoadedState extends CatalogState {
   final List<CatalogEntry> entries;
   final bool hasMore;
+  final bool countLoading;
+  final int count;
 
-  LoadedState(this.entries, [this.hasMore = true]) : super(<dynamic>[...entries, hasMore]);
+  LoadedState(this.entries, [this.hasMore = true, this.countLoading = false, this.count]) : super(<dynamic>[...entries, hasMore, countLoading, count]);
 
   @override
   String toString() => 'LoadedState { entries: $entries }';
 }
 
 @immutable
-class CatalogEvent extends Equatable {
+class CatalogEvent {}
+
+@immutable
+class CatalogFetch extends CatalogEvent {
   final List<dynamic> profile;
   final List<String> ids;
 
-  CatalogEvent({this.profile, this.ids}) : super([if (profile != null) ...profile, if (ids != null) ...ids]);
+  CatalogFetch({this.profile, this.ids});
+}
+
+@immutable
+class CatalogReload extends CatalogEvent {
+  final List<dynamic> profile;
+  final List<String> ids;
+
+  CatalogReload({this.profile, this.ids});
+}
+
+@immutable
+class CatalogCountWith extends CatalogEvent {
+  final int rooms;
+  final double priceLow;
+  final double priceHigh;
+
+  CatalogCountWith({this.rooms, this.priceLow, this.priceHigh});
 }

@@ -8,6 +8,9 @@ export 'package:irenti/model/user.dart';
 
 const List<int> _kCounts = [5, 3, 2, 3, 2];
 
+const String _kRoomCol = 'roomcol';
+const String _kPrice = 'price';
+
 final ConnectionSettings _kDbSettings = ConnectionSettings(
   host: 'hodlyard.com',
   port: 3306,
@@ -23,10 +26,28 @@ class CatalogRepository {
   CatalogRepository({MySqlConnection db, Firestore firestore})
       : _db = db, _firestore = firestore ?? Firestore.instance;
 
-  Future<List<CatalogEntry>> fetchData({String uid, List<dynamic> profile, List<String> ids, int count, int offset = 0}) async {
+  Future<List<CatalogEntry>> fetchData({
+    String uid,
+    List<dynamic> profile,
+    List<String> ids,
+    int count,
+    int offset = 0,
+    int roomCol,
+    double priceLow,
+    double priceHigh,
+  }) async {
     _db ??= await MySqlConnection.connect(_kDbSettings);
-    String query = 'select * from datapars '
-        '${ids != null ? 'where id in (${ids.isEmpty ? '-1' : ids.join(',')}) ' : ''}'
+    List<String> filters = [
+      if (ids != null)
+        '(id in (${ids.isEmpty ? '-1' : ids.join(',')})) ',
+      if (roomCol != null && roomCol >= 0)
+        _roomColExpr(roomCol),
+      if (priceLow != null || priceHigh != null)
+        _priceExpr(priceLow, priceHigh),
+    ];
+    String query = filters.isEmpty ? '' : 'where ${filters.join('and ')} ';
+    query = 'select * from datapars '
+        '$query'
         'order by id asc'
         '${ids == null ? ' limit ${offset ?? 0},$count' : ''};';
     Results q = await _db.query(query);
@@ -35,6 +56,26 @@ class CatalogRepository {
         CatalogEntry.fromMap(row['id'].toString(), row.fields),
     ];
     return await Future.wait(entries.map((entry) => _loaded(entry, _firestore, uid, profile)));
+  }
+
+  Future<int> countWith({int roomCol, double priceLow, double priceHigh}) async {
+    _db ??= await MySqlConnection.connect(_kDbSettings);
+    List<String> filters = [
+      if (roomCol != null && roomCol >= 0)
+        _roomColExpr(roomCol),
+      if (priceLow != null || priceHigh != null)
+        _priceExpr(priceLow, priceHigh),
+    ];
+    String query = filters.isEmpty ? '' : ' where ${filters.join('and ')}';
+    query = 'select count(id) from datapars$query';
+    Results q = await _db.query(query);
+    return q.single['count(id)'];
+  }
+
+  Future<List<double>> getMinMax() async {
+    _db ??= await MySqlConnection.connect(_kDbSettings);
+    Results q = await _db.query('select min(price),max(price) from datapars');
+    return [q.single['min(price)'].toDouble(),q.single['max(price)'].toDouble()];
   }
 
   Future<CatalogEntry> _loaded(CatalogEntry on, Firestore firestore, String uid, List<dynamic> profile) async {
@@ -77,5 +118,29 @@ class CatalogRepository {
       description: on.description,
       conditions: on.conditions,
     );
+  }
+
+  String _roomColExpr(int roomCol) {
+    switch (roomCol) {
+      case 0:
+        return '($_kRoomCol = 1) ';
+      case 1:
+        return '($_kRoomCol = 2) ';
+      case 2:
+        return '($_kRoomCol = 3) ';
+      case 3:
+        return '($_kRoomCol >= 4) ';
+      default:
+        return '';
+    }
+  }
+
+  String _priceExpr(double low, double high) {
+    return [
+      if (low != null)
+        '($_kPrice >= $low) ',
+      if (high != null)
+        '($_kPrice <= $high) ',
+    ].join('and ');
   }
 }

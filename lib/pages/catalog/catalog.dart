@@ -56,12 +56,12 @@ class _CatalogPageState extends State<CatalogPage> with SingleTickerProviderStat
       _profile = authState.data;
     }
     _bloc = CatalogBloc(catalogRepository: _catalogRepository, userId: _uid);
-    _bloc.dispatch(CatalogEvent(profile: _profile, ids: widget.favorites ? (authState as Authenticated).fave : null));
+    _bloc.dispatch(CatalogFetch(profile: _profile, ids: widget.favorites ? (authState as Authenticated).fave : null));
     if (!widget.favorites) {
       _scroller.addListener(() {
         if (_canFetch && (_scroller.offset / MediaQuery.of(context).size.height) >= _count * 0.8) {
           _canFetch = false;
-          _bloc.dispatch(CatalogEvent(profile: _profile));
+          _bloc.dispatch(CatalogFetch(profile: _profile));
         }
       });
     }
@@ -183,6 +183,9 @@ class _CatalogPageState extends State<CatalogPage> with SingleTickerProviderStat
       bloc: _bloc,
       builder: (context, state) {
         if (state is LoadedState) {
+          if (state.entries.isEmpty) {
+            return const Center(child: CupertinoActivityIndicator());
+          }
           _count = state.entries.length;
           _canFetch = state.hasMore;
           return Stack(
@@ -193,8 +196,9 @@ class _CatalogPageState extends State<CatalogPage> with SingleTickerProviderStat
                     ? const PageScrollPhysics(parent: ClampingScrollPhysics())
                     : const NeverScrollableScrollPhysics(),
                 padding: EdgeInsets.zero,
-                itemCount: state.entries.length,
+                //itemCount: state.entries.length < 1 ? 1 : state.entries.length,
                 itemBuilder: (ctx, i) {
+                  if (i >= _count) return null;
                   CatalogEntry e = state.entries[i];
                   return SizedBox(
                     key: ValueKey(i),
@@ -444,7 +448,7 @@ class _CatalogPageState extends State<CatalogPage> with SingleTickerProviderStat
                       alignment: AlignmentDirectional.centerStart,
                       size: Size.fromHeight(kToolbarHeight),
                       child: InkWell(
-                        onTap: () {},
+                        onTap: () => Navigator.pushNamed(context, '/catalog/filter', arguments: _bloc),
                         child: const Icon(Icons.settings, color: Colors.white),
                       ),
                     ),
@@ -454,7 +458,7 @@ class _CatalogPageState extends State<CatalogPage> with SingleTickerProviderStat
             ],
           );
         }
-        return Container();
+        return const Center(child: CupertinoActivityIndicator());
       },
     );
   }

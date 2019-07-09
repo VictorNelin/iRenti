@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:irenti/widgets/checkbox.dart';
+import 'package:irenti/widgets/list_tile.dart';
 
 class RadioGroup extends StatefulWidget {
   final List<String> titles;
@@ -19,7 +20,7 @@ class RadioGroup extends StatefulWidget {
     this.allowNullValue = false,
     this.paddingBetween = 40,
     this.showDividers = false,
-  }) :  assert((value == null && !allowNullValue) || (value >= 0 && value < titles.length)),
+  }) :  assert((value == null && allowNullValue) || (value >= 0 && value < titles.length)),
         super(key: key);
 
   @override
@@ -43,13 +44,14 @@ class _RadioGroupState extends State<RadioGroup> {
 
   @override
   Widget build(BuildContext context) {
+    bool inEntry = context.ancestorWidgetOfExactType(ListEntry) != null;
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         for (String s in widget.titles)
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
+            padding: inEntry ? EdgeInsets.zero : const EdgeInsets.symmetric(horizontal: 20),
             height: widget.paddingBetween + 20,
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,

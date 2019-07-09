@@ -60,18 +60,21 @@ class _RoundCheckboxState extends State<RoundCheckbox> with SingleTickerProvider
               begin: BoxDecoration(
                 color: Colors.transparent,
                 shape: BoxShape.circle,
-                border: Border.all(color: const Color(0xFFEF5353), width: 2.0),
+                border: Border.all(color: const Color(0xFFEF5353), width: 2),
               ),
               end: BoxDecoration(
                 color: Colors.transparent,
                 shape: BoxShape.circle,
-                border: Border.all(color: const Color(0xFFEF5353), width: 28),
+                border: Border.all(color: const Color(0xFFEF5353), width: widget.size / 2),
               ),
             ).animate(CurvedAnimation(parent: _checkbox.view, curve: Curves.easeOut)),
-            child: Checkbox(
-              value: _agreed,
-              activeColor: Colors.transparent,
-              onChanged: widget.onChanged,
+            child: SizedBox.fromSize(
+              size: Size.square(widget.size),
+              child: Checkbox(
+                value: _agreed,
+                activeColor: Colors.transparent,
+                onChanged: widget.onChanged,
+              ),
             ),
           ),
         ),
