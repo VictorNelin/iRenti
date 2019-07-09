@@ -29,7 +29,7 @@ class _DialogsPageState extends State<DialogsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: PreferredSize(
+      /*appBar: PreferredSize(
         preferredSize: Size.fromHeight(kToolbarHeight),
         child: SafeArea(
           child: OverflowBox(
@@ -44,10 +44,11 @@ class _DialogsPageState extends State<DialogsPage> {
             ),
           ),
         ),
-      ),
+      ),*/
       body: CustomScrollView(
         slivers: <Widget>[
-          SliverToBoxAdapter(
+          SliverPersistentHeader(delegate: TitleBarDelegate(MediaQuery.of(context).padding.top), pinned: true),
+          /*SliverToBoxAdapter(
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 40),
               decoration: BoxDecoration(
@@ -60,7 +61,7 @@ class _DialogsPageState extends State<DialogsPage> {
                 ),
               ),
             ),
-          ),
+          ),*/
           BlocBuilder<MessagesEvent, MessagesState>(
             bloc: _messagesBloc,
             builder: (context, state) {
@@ -151,5 +152,59 @@ class _DialogsPageState extends State<DialogsPage> {
         ],
       ),
     );
+  }
+}
+
+class TitleBarDelegate extends SliverPersistentHeaderDelegate {
+  final double topPadding;
+
+  const TitleBarDelegate(this.topPadding);
+
+  @override
+  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
+    return DefaultTextStyle(
+      style: Theme.of(context).textTheme.headline.copyWith(
+        color: const Color(0xFF272D30),
+      ),
+      child: Stack(
+        children: <Widget>[
+          Container(
+            color: Theme.of(context).canvasColor,
+            height: (maxExtent - shrinkOffset).clamp(minExtent, maxExtent).toDouble(),
+            foregroundDecoration: BoxDecoration(
+              border: Border(bottom: Divider.createBorderSide(context)),
+            ),
+          ),
+          Positioned(
+            top: 4 + topPadding,
+            right: 4,
+            child: IconButton(
+              onPressed: () {},//=> Navigator.pop(context),
+              icon: const Icon(Icons.search),
+            ),
+          ),
+          Positioned(
+            top: topPadding,
+            left: 20,
+            bottom: 0,
+            child: Align(
+              alignment: Alignment(0, 40 / (40 + kToolbarHeight) * ((60 - shrinkOffset.clamp(0.0, 60.0)) / 60)),
+              child: const Text('Общение'),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  double get maxExtent => kToolbarHeight + 60 + topPadding;
+
+  @override
+  double get minExtent => kToolbarHeight + topPadding;
+
+  @override
+  bool shouldRebuild(SliverPersistentHeaderDelegate oldDelegate) {
+    return false;
   }
 }
