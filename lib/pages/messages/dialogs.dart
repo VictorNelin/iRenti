@@ -29,39 +29,9 @@ class _DialogsPageState extends State<DialogsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      /*appBar: PreferredSize(
-        preferredSize: Size.fromHeight(kToolbarHeight),
-        child: SafeArea(
-          child: OverflowBox(
-            alignment: AlignmentDirectional.centerEnd,
-            minWidth: 0.0,
-            maxWidth: double.infinity,
-            minHeight: kToolbarHeight,
-            maxHeight: kToolbarHeight,
-            child: IconButton(
-              onPressed: () {},//=> Navigator.pop(context),
-              icon: const Icon(Icons.search),
-            ),
-          ),
-        ),
-      ),*/
       body: CustomScrollView(
         slivers: <Widget>[
           SliverPersistentHeader(delegate: TitleBarDelegate(MediaQuery.of(context).padding.top), pinned: true),
-          /*SliverToBoxAdapter(
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 40),
-              decoration: BoxDecoration(
-                border: Border(bottom: Divider.createBorderSide(context)),
-              ),
-              child: Text(
-                'Общение',
-                style: Theme.of(context).textTheme.headline.copyWith(
-                  color: const Color(0xFF272D30),
-                ),
-              ),
-            ),
-          ),*/
           BlocBuilder<MessagesEvent, MessagesState>(
             bloc: _messagesBloc,
             builder: (context, state) {
@@ -112,7 +82,6 @@ class _DialogsPageState extends State<DialogsPage> {
                                     style: TextStyle(
                                       fontSize: 14,
                                       fontWeight: FontWeight.w500,
-                                      color: const Color(0xff272d30),
                                     ),
                                   ),
                                   Text(
@@ -126,7 +95,6 @@ class _DialogsPageState extends State<DialogsPage> {
                                     style: TextStyle(
                                       fontSize: 14,
                                       fontWeight: FontWeight.normal,
-                                      color: const Color(0xff272d30).withOpacity(0.7),
                                     ),
                                   ),
                                 ],
@@ -163,9 +131,7 @@ class TitleBarDelegate extends SliverPersistentHeaderDelegate {
   @override
   Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
     return DefaultTextStyle(
-      style: Theme.of(context).textTheme.headline.copyWith(
-        color: const Color(0xFF272D30),
-      ),
+      style: Theme.of(context).textTheme.headline,
       child: Stack(
         children: <Widget>[
           Container(

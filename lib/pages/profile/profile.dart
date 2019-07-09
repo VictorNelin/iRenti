@@ -208,7 +208,6 @@ class _ProfilePageState extends State<ProfilePage> {
               Text(
                 user.displayName,
                 style: Theme.of(context).textTheme.title.copyWith(
-                  color: const Color.fromRGBO(0x27, 0x2D, 0x30, 1),
                 ),
               ),
               //UserData.email always returns null
@@ -217,9 +216,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   padding: const EdgeInsets.only(top: 6),
                   child: Text(
                     user.email,
-                    style: Theme.of(context).textTheme.body1.copyWith(
-                      color: const Color.fromRGBO(0x27, 0x2D, 0x30, 0.7),
-                    ),
+                    style: Theme.of(context).textTheme.body1,
                   ),
                 ),
             ],
@@ -238,7 +235,6 @@ class _ProfilePageState extends State<ProfilePage> {
           child: Text(
             'Профиль',
             style: Theme.of(context).textTheme.headline.copyWith(
-              color: const Color(0xFF272D30),
             ),
           ),
         ),
@@ -250,7 +246,6 @@ class _ProfilePageState extends State<ProfilePage> {
                   'Это поможет точнее подобрать жилье\n'
                   'и познакомить вас с соседями.',
               style: Theme.of(context).textTheme.body1.copyWith(
-                color: const Color(0xFF272D30),
                 fontWeight: FontWeight.normal,
                 fontSize: 14.0,
               ),

@@ -112,7 +112,7 @@ class _CatalogFilterPageState extends State<CatalogFilterPage> {
             child: Text(
               'Фильтр',
               style: Theme.of(context).textTheme.headline.copyWith(
-                color: const Color(0xFF272D30),
+                //color: const Color(0xFF272D30),
               ),
             ),
           ),
@@ -122,7 +122,7 @@ class _CatalogFilterPageState extends State<CatalogFilterPage> {
             child: Text(
               'Регион: Москва',
               style: Theme.of(context).textTheme.body1.copyWith(
-                color: const Color(0xFF272D30),
+                //color: const Color(0xFF272D30),
               ),
             ),
           ),
@@ -221,7 +221,7 @@ class _CatalogFilterPageState extends State<CatalogFilterPage> {
                 if (state is LoadedState) {
                   return FlatButton(
                     child: Text(state.countLoading ? 'ЗАГРУЗКА...' : 'ПОКАЗАТЬ ВАРИАНТОВ${state.count == null ? '' : ': ${state.count}'}'),
-                    color: const Color(0xFF272D30),
+                    color: const Color(0xFFEF5353),
                     onPressed: state.count == null || state.countLoading ? null : () {
                       _bloc.dispatch(CatalogReload());
                       Navigator.pop(context);

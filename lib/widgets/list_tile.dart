@@ -39,20 +39,13 @@ class ListEntry extends StatelessWidget {
                         padding: EdgeInsets.symmetric(vertical: 20),
                         child: Text(
                           title,
-                          style: Theme.of(context).textTheme.body1.copyWith(
-                            color: const Color.fromRGBO(0x27, 0x2D, 0x30, 0.7),
-                            fontWeight: FontWeight.normal,
-                            fontSize: 14.0,
-                          ),
+                          style: Theme.of(context).textTheme.subhead,
                         ),
                       ),
                       Padding(
                         padding: EdgeInsets.only(bottom: 20),
                         child: DefaultTextStyle(
-                          style: Theme.of(context).textTheme.body2.copyWith(
-                            fontWeight: FontWeight.w500,
-                            color: const Color(0xFF272D30),
-                          ),
+                          style: Theme.of(context).textTheme.body1,
                           child: child,
                         ),
                       ),

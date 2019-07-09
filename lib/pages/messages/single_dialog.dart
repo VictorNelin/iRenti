@@ -97,7 +97,6 @@ class _DialogPageState extends State<DialogPage> {
             style: TextStyle(
               fontWeight: FontWeight.normal,
               fontSize: 12,
-              color: const Color(0xff272d30).withOpacity(0.7),
             ),
           ),
         ),
@@ -122,12 +121,10 @@ class _DialogPageState extends State<DialogPage> {
                       Text(data.titleFormatted, style: TextStyle(
                         fontWeight: FontWeight.normal,
                         fontSize: 14,
-                        color: const Color(0xff272d30).withOpacity(0.7),
                       )),
                       Text('Хозяин:\n${data.owner}, ${data.phones[0]}', style: TextStyle(
                         fontWeight: FontWeight.w500,
                         fontSize: 12,
-                        color: const Color(0xff272d30),
                       )),
                     ],
                   ),
@@ -161,6 +158,7 @@ class _DialogPageState extends State<DialogPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
                 Material(
+                  type: MaterialType.card,
                   shape: const RoundedRectangleBorder(borderRadius: BorderRadiusDirectional.only(
                     topStart: Radius.circular(4),
                     topEnd: Radius.circular(4),
@@ -176,7 +174,6 @@ class _DialogPageState extends State<DialogPage> {
                       style: TextStyle(
                         fontWeight: FontWeight.normal,
                         fontSize: 14,
-                        color: const Color(0xff272d30).withOpacity(0.7),
                       ),
                     ),
                   ),
@@ -186,10 +183,9 @@ class _DialogPageState extends State<DialogPage> {
                   child: RichText(
                     textDirection: Directionality.of(context),
                     text: TextSpan(
-                      style: TextStyle(
+                      style: Theme.of(context).textTheme.caption.copyWith(
                         fontSize: 12.0,
                         fontWeight: FontWeight.normal,
-                        color: const Color(0xff272d30).withOpacity(0.7),
                       ),
                       text: '${item.fromId == _uid ? 'Вы' : item.from.displayName}, ${_formatDate(context, item.timestamp)} ',
                       children: [
@@ -214,12 +210,11 @@ class _DialogPageState extends State<DialogPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xffe7e7e7),
+      backgroundColor: Theme.of(context).backgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios, color: const Color(0xff2b2b2b)),
+          icon: const Icon(Icons.arrow_back_ios),
           onPressed: () => Navigator.pop(context),
         ),
         centerTitle: true,
@@ -227,11 +222,10 @@ class _DialogPageState extends State<DialogPage> {
           widget.title,
           style: Theme.of(context).textTheme.body1.copyWith(
             fontSize: 14,
-            color: const Color(0xff272d30),
           ),
         ),
         actions: <Widget>[
-          IconButton(icon: Icon(Icons.more_vert, color: const Color(0xff2b2b2b)), onPressed: () {
+          IconButton(icon: const Icon(Icons.more_vert), onPressed: () {
             showCupertinoModalPopup(context: context, builder: (ctx) {
               return CupertinoActionSheet(
                 title: Text('Выберите действие'),
@@ -289,7 +283,6 @@ class _DialogPageState extends State<DialogPage> {
                             style: TextStyle(
                               fontWeight: FontWeight.normal,
                               fontSize: 12,
-                              color: const Color(0xff272d30).withOpacity(0.7),
                             ),
                           ),
                         ),
@@ -371,6 +364,8 @@ class _ReplyFieldState extends State<_ReplyField> with SingleTickerProviderState
   @override
   Widget build(BuildContext context) {
     return Material(
+      type: MaterialType.card,
+      shape: const RoundedRectangleBorder(),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,

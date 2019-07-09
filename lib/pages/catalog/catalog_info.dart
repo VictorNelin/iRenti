@@ -40,9 +40,7 @@ class CatalogInfoPage extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 20.0),
             child: Text(
               e.titleFormatted,
-              style: Theme.of(context).textTheme.headline.copyWith(
-                color: const Color(0xFF272D30),
-              ),
+              style: Theme.of(context).textTheme.headline,
             ),
           ),
           const SizedBox(height: 16.0),
@@ -50,9 +48,7 @@ class CatalogInfoPage extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 20.0),
             child: Text(
               '${e.costFormatted} руб./месяц',
-              style: Theme.of(context).textTheme.title.copyWith(
-                color: const Color(0xFF272D30),
-              ),
+              style: Theme.of(context).textTheme.title,
             ),
           ),
           const SizedBox(height: 16.0),
@@ -60,9 +56,7 @@ class CatalogInfoPage extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 20.0),
             child: Text(
               e.address,
-              style: Theme.of(context).textTheme.body1.copyWith(
-                color: const Color(0xFF272D30),
-              ),
+              style: Theme.of(context).textTheme.body1,
             ),
           ),
           const SizedBox(height: 20.0),

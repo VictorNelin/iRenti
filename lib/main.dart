@@ -19,20 +19,6 @@ import 'pages/messages/dialogs.dart';
 import 'pages/messages/single_dialog.dart';
 import 'pages/profile/profile.dart';
 
-class SimpleBlocDelegate extends BlocDelegate {
-  @override
-  void onError(Bloc bloc, Object error, StackTrace stacktrace) {
-    super.onError(bloc, error, stacktrace);
-    debugPrint(error.toString());
-  }
-
-  @override
-  void onTransition(Bloc bloc, Transition transition) {
-    super.onTransition(bloc, transition);
-    debugPrint(transition.toString());
-  }
-}
-
 void main() {
   if (kReleaseMode) {
     debugPrint = (_, {wrapWidth}) {};
@@ -76,48 +62,8 @@ class _AppState extends State<App> {
       ],
       child: MaterialApp(
         title: 'iRenti',
-        theme: ThemeData(
-          primarySwatch: Colors.red,
-          platform: TargetPlatform.iOS,
-          accentColor: const Color(0xFFEF5353),
-          typography: Typography(platform: TargetPlatform.iOS).copyWith(
-            englishLike: Typography.englishLike2014.copyWith(
-              headline: Typography.englishLike2014.headline.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
-              title: Typography.englishLike2014.title.copyWith(
-                fontSize: 17.0,
-                fontWeight: FontWeight.w600,
-              ),
-              subhead: Typography.englishLike2014.subhead.copyWith(
-                fontSize: 15.0,
-                fontWeight: FontWeight.w500,
-              ),
-              body1: Typography.englishLike2014.body1.copyWith(
-                fontSize: 12.0,
-                fontWeight: FontWeight.w500,
-              ),
-              body2: Typography.englishLike2014.body2.copyWith(
-                fontSize: 12.0,
-                fontWeight: FontWeight.bold,
-              ),
-              button: Typography.englishLike2014.button.copyWith(
-                fontSize: 13.0,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-          textTheme: Typography.blackCupertino.apply(
-            fontFamily: '.SF UI Display',
-          ).copyWith(
-            button: Typography.whiteCupertino.button,
-          ),
-          buttonTheme: ButtonThemeData(
-            textTheme: ButtonTextTheme.primary,
-            shape: StadiumBorder(),
-            height: 48.0,
-          ),
-        ),
+        theme: buildTheme(Brightness.light),
+        darkTheme: buildTheme(Brightness.dark),
         home: BlocBuilder(
           bloc: _authenticationBloc,
           builder: (context, state) {
@@ -236,4 +182,80 @@ class _AppState extends State<App> {
       ),
     );
   }
+}
+
+class SimpleBlocDelegate extends BlocDelegate {
+  @override
+  void onError(Bloc bloc, Object error, StackTrace stacktrace) {
+    super.onError(bloc, error, stacktrace);
+    debugPrint(error.toString());
+  }
+
+  @override
+  void onTransition(Bloc bloc, Transition transition) {
+    super.onTransition(bloc, transition);
+    debugPrint(transition.toString());
+  }
+}
+
+ThemeData buildTheme(Brightness brightness) {
+  bool dark = brightness == Brightness.dark;
+  return ThemeData(
+    brightness: brightness,
+    primarySwatch: Colors.red,
+    platform: TargetPlatform.iOS,
+    accentColor: const Color(0xFFEF5353),
+    backgroundColor: dark ? const Color(0xFF181818) : const Color(0xFFE7E7E7),
+    canvasColor: dark ? Colors.black : null,
+    cardColor: dark ? const Color(0xff272d30) : null,
+    typography: Typography(platform: TargetPlatform.iOS).copyWith(
+      englishLike: Typography.englishLike2014.copyWith(
+        headline: Typography.englishLike2014.headline.copyWith(
+          fontWeight: FontWeight.bold,
+        ),
+        title: Typography.englishLike2014.title.copyWith(
+          fontSize: 17.0,
+          fontWeight: FontWeight.w600,
+        ),
+        subhead: Typography.englishLike2014.subhead.copyWith(
+          fontSize: 15.0,
+          fontWeight: FontWeight.w500,
+        ),
+        body1: Typography.englishLike2014.body1.copyWith(
+          fontSize: 12.0,
+          fontWeight: FontWeight.w500,
+        ),
+        body2: Typography.englishLike2014.body2.copyWith(
+          fontSize: 12.0,
+          fontWeight: FontWeight.bold,
+        ),
+        button: Typography.englishLike2014.button.copyWith(
+          fontSize: 13.0,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    ),
+    textTheme: (dark ? Typography.whiteCupertino : Typography.blackCupertino).apply(
+      fontFamily: '.SF UI Display',
+      displayColor: dark ? Colors.white : const Color(0xff272d30),
+      bodyColor: dark ? Colors.white : const Color(0xff272d30),
+    ).copyWith(
+      button: Typography.whiteCupertino.button,
+    ),
+    buttonTheme: const ButtonThemeData(
+      textTheme: ButtonTextTheme.primary,
+      shape: StadiumBorder(),
+      height: 48.0,
+    ),
+    appBarTheme: AppBarTheme(
+      brightness: Brightness.dark,
+      color: dark ? const Color(0xff272d30) : Colors.white,
+      iconTheme: IconThemeData(
+        color: dark ? Colors.white : const Color(0xff272d30),
+      ),
+      actionsIconTheme: IconThemeData(
+        color: dark ? Colors.white : const Color(0xff272d30),
+      ),
+    ),
+  );
 }
