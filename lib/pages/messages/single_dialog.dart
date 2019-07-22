@@ -259,7 +259,11 @@ class _DialogPageState extends State<DialogPage> {
               bloc: _messagesBloc,
               builder: (ctx, state) {
                 if (state is MessagesLoadedState) {
-                  Conversation chat = state.entries.singleWhere((c) => c.id == widget.dialogId);
+                  Conversation chat = state.entries.singleWhere((c) => c.id == widget.dialogId, orElse: () {
+                    Navigator.pop(context);
+                    return null;
+                  });
+                  if (chat == null) return SizedBox();
                   _startedId = chat.startedById;
                   if ((_lastLength ?? 0) != chat.messages.length) {
                     _lastLength = chat.messages.length;

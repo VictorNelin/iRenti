@@ -345,12 +345,19 @@ class _RegisterPageState extends State<RegisterPage> with SingleTickerProviderSt
                                 ),
                                 ListTile(
                                   enabled: _inputAllowed,
-                                  leading: RoundCheckbox(
-                                    value: _agreed,
-                                    size: 44.0,
-                                    onChanged: (b) {
-                                      setState(() => _agreed = b);
-                                    },
+                                  leading: SizedBox(
+                                    width: 40,
+                                    height: 56,
+                                    child: Align(
+                                      alignment: Alignment.center,
+                                      child: RoundCheckbox(
+                                        value: _agreed,
+                                        size: 24.0,
+                                        onChanged: (b) {
+                                          setState(() => _agreed = b);
+                                        },
+                                      ),
+                                    ),
                                   ),
                                   title: Padding(
                                     padding: const EdgeInsets.symmetric(vertical: 20.0),

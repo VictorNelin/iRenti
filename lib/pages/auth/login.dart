@@ -106,25 +106,19 @@ class _LoginPageState extends State<LoginPage> {
                 const SizedBox(height: 40.0),
                 Text(
                   'Авторизация',
-                  style: Theme.of(context).textTheme.headline.copyWith(
-                    color: const Color(0xFF272D30),
-                  ),
+                  style: Theme.of(context).textTheme.headline,
                 ),
                 const SizedBox(height: 40.0),
                 TextFormField(
                   enabled: _inputAllowed,
                   decoration: InputDecoration(
                     labelText: 'Email',
-                    labelStyle: Theme.of(context).textTheme.subhead.copyWith(
-                      color: const Color(0xFF272D30),
-                    ),
+                    labelStyle: Theme.of(context).textTheme.subhead,
                     alignLabelWithHint: true,
-                    enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Color(0xFF272D30))),
-                    focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: Color(0xFF272D30), width: 2.0)),
+                    enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Theme.of(context).textTheme.subhead.color)),
+                    focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: Theme.of(context).textTheme.subhead.color, width: 2.0)),
                   ),
-                  style: Theme.of(context).textTheme.subhead.copyWith(
-                    color: const Color(0xFF272D30),
-                  ),
+                  style: Theme.of(context).textTheme.subhead,
                   keyboardType: TextInputType.emailAddress,
                   validator: (s) => _loginError ?? (Validators.isValidEmail(s) ? null : 'Введите правильный email'),
                   onSaved: (s) => _login = s,
@@ -133,16 +127,12 @@ class _LoginPageState extends State<LoginPage> {
                   enabled: _inputAllowed,
                   decoration: InputDecoration(
                     labelText: 'Пароль',
-                    labelStyle: Theme.of(context).textTheme.subhead.copyWith(
-                      color: const Color(0xFF272D30),
-                    ),
+                    labelStyle: Theme.of(context).textTheme.subhead,
                     alignLabelWithHint: true,
-                    enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Color(0xFF272D30))),
-                    focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: Color(0xFF272D30), width: 2.0)),
+                    enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Theme.of(context).textTheme.subhead.color)),
+                    focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: Theme.of(context).textTheme.subhead.color, width: 2.0)),
                   ),
-                  style: Theme.of(context).textTheme.subhead.copyWith(
-                    color: const Color(0xFF272D30),
-                  ),
+                  style: Theme.of(context).textTheme.subhead,
                   obscureText: true,
                   validator: (s) => _passwordError ?? (Validators.isValidPassword(s) ? null : 'Введите пароль'),
                   onSaved: (s) => _password = s,
@@ -151,9 +141,7 @@ class _LoginPageState extends State<LoginPage> {
                 RichText(
                   text: TextSpan(
                     text: 'Восстановление пароля',
-                    style: Theme.of(context).textTheme.body1.copyWith(
-                      color: const Color(0xFF272D30),
-                    ),
+                    style: Theme.of(context).textTheme.body1,
                     recognizer: TapGestureRecognizer()..onTap = () {
 
                     },

@@ -414,8 +414,8 @@ class _CatalogPageState extends State<CatalogPage> with SingleTickerProviderStat
                                               Flushbar(
                                                 message: state.fave.contains(e.id) ? 'Добавлено в избранное' : 'Удалено из избранного',
                                                 borderRadius: 8.0,
-                                                aroundPadding: EdgeInsets.all(8.0).copyWith(
-                                                  bottom: MediaQuery.of(context).padding.bottom + 8.0,
+                                                margin: EdgeInsets.only(
+                                                  bottom: MediaQuery.of(context).padding.bottom,
                                                 ),
                                                 dismissDirection: FlushbarDismissDirection.HORIZONTAL,
                                                 duration: const Duration(seconds: 3),

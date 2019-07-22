@@ -50,7 +50,16 @@ class CatalogRepository {
         '$query'
         'order by id asc'
         '${ids == null ? ' limit ${offset ?? 0},$count' : ''};';
-    Results q = await _db.query(query);
+    Results q;
+    try {
+      q = await _db.query(query);
+    } catch (e) {
+      _db = await MySqlConnection.connect(_kDbSettings);
+      q = await _db.query(query);
+    }
+    if (q == null) {
+      return <CatalogEntry>[];
+    }
     List<CatalogEntry> entries = [
       for (Row row in q)
         CatalogEntry.fromMap(row['id'].toString(), row.fields),

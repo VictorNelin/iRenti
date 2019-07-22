@@ -8,6 +8,9 @@ class Validators {
   static final RegExp _passwordRegExp = RegExp(
     r'^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$',
   );
+  static final RegExp _passwordNumRegExp = RegExp(
+    r'\b[0-9A-Za-z._]{8,}\b',
+  );
 
   static isValidPhone(String phone) {
     return _phoneRegExp.hasMatch(phone);
@@ -18,6 +21,7 @@ class Validators {
   }
 
   static isValidPassword(String password) {
-    return _passwordRegExp.hasMatch(password);
+    return true;
+    return _passwordNumRegExp.hasMatch(password);
   }
 }
