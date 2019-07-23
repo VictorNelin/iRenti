@@ -14,6 +14,7 @@ import 'pages/auth/login.dart';
 import 'pages/auth/register.dart';
 import 'pages/catalog/catalog.dart';
 import 'pages/catalog/catalog_filter.dart';
+import 'pages/catalog/catalog_filter_metro.dart';
 import 'pages/catalog/catalog_info.dart';
 import 'pages/messages/dialogs.dart';
 import 'pages/messages/single_dialog.dart';
@@ -164,6 +165,12 @@ class _AppState extends State<App> {
               builder: (ctx) => CatalogFilterPage(bloc: settings.arguments),
               fullscreenDialog: true,
             );
+          } else if (settings.name == '/catalog/filter/metro') {
+            return DefCupertinoPageRoute(
+              builder: (ctx) => CatalogFilterMetroPage(initial: settings.arguments),
+              fullscreenDialog: true,
+              result: settings.arguments,
+            );
           } else if (settings.name == '/catalog/profile') {
             return CupertinoPageRoute(
               builder: (ctx) => ProfilePage(user: settings.arguments),
@@ -258,4 +265,25 @@ ThemeData buildTheme(Brightness brightness) {
       ),
     ),
   );
+}
+
+class DefCupertinoPageRoute<T> extends CupertinoPageRoute<T> {
+  DefCupertinoPageRoute({
+    @required WidgetBuilder builder,
+    String title,
+    RouteSettings settings,
+    bool maintainState = true,
+    bool fullscreenDialog = false,
+    this.result,
+  }) : super(
+    builder: builder,
+    title: title,
+    settings: settings,
+    maintainState: maintainState,
+    fullscreenDialog: fullscreenDialog,
+  );
+
+  @override
+  T get currentResult => result;
+  T result;
 }

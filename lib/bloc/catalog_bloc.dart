@@ -12,6 +12,7 @@ class CatalogBloc extends Bloc<CatalogEvent, CatalogState> {
   double _priceLow;
   double _priceHigh;
   List<dynamic> _profile;
+  List<String> _metro;
 
   CatalogBloc({@required CatalogRepository catalogRepository, this.userId})
       : assert(catalogRepository != null),
@@ -23,6 +24,7 @@ class CatalogBloc extends Bloc<CatalogEvent, CatalogState> {
   int get roomsFilter => _rooms;
   double get priceLowFilter => _priceLow;
   double get priceHighFilter => _priceHigh;
+  List<String> get metroFilter => _metro;
 
   Future<List<double>> get minMaxPrice => _catalogRepository.getMinMax();
 
@@ -30,6 +32,7 @@ class CatalogBloc extends Bloc<CatalogEvent, CatalogState> {
     _rooms = null;
     _priceLow = null;
     _priceHigh = null;
+    _metro = null;
   }
 
   @override
@@ -63,6 +66,7 @@ class CatalogBloc extends Bloc<CatalogEvent, CatalogState> {
           roomCol: _rooms,
           priceLow: _priceLow,
           priceHigh: _priceHigh,
+          metro: _metro,
         );
         yield LoadedState(
           data,
@@ -77,10 +81,12 @@ class CatalogBloc extends Bloc<CatalogEvent, CatalogState> {
         _rooms = event.rooms;
         _priceLow = event.priceLow;
         _priceHigh = event.priceHigh;
+        _metro = event.metro != null ? List.of(event.metro) : null;
         final data = await _catalogRepository.countWith(
           roomCol: event.rooms,
           priceLow: event.priceLow,
           priceHigh: event.priceHigh,
+          metro: event.metro,
         );
         yield LoadedState(
           state.entries,
@@ -161,6 +167,7 @@ class CatalogCountWith extends CatalogEvent {
   final int rooms;
   final double priceLow;
   final double priceHigh;
+  final List<String> metro;
 
-  CatalogCountWith({this.rooms, this.priceLow, this.priceHigh});
+  CatalogCountWith({this.rooms, this.priceLow, this.priceHigh, this.metro});
 }

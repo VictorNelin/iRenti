@@ -10,6 +10,7 @@ const List<int> _kCounts = [5, 3, 2, 3, 2];
 
 const String _kRoomCol = 'roomcol';
 const String _kPrice = 'price';
+const String _kMetro = 'allundergrounds';
 
 final ConnectionSettings _kDbSettings = ConnectionSettings(
   host: 'hodlyard.com',
@@ -35,6 +36,7 @@ class CatalogRepository {
     int roomCol,
     double priceLow,
     double priceHigh,
+    List<String> metro,
   }) async {
     _db ??= await MySqlConnection.connect(_kDbSettings);
     List<String> filters = [
@@ -44,6 +46,8 @@ class CatalogRepository {
         _roomColExpr(roomCol),
       if (priceLow != null || priceHigh != null)
         _priceExpr(priceLow, priceHigh),
+      if (metro != null && metro.isNotEmpty)
+        _metroExpr(metro),
     ];
     String query = filters.isEmpty ? '' : 'where ${filters.join('and ')} ';
     query = 'select * from datapars '
@@ -67,13 +71,15 @@ class CatalogRepository {
     return await Future.wait(entries.map((entry) => _loaded(entry, _firestore, uid, profile)));
   }
 
-  Future<int> countWith({int roomCol, double priceLow, double priceHigh}) async {
+  Future<int> countWith({int roomCol, double priceLow, double priceHigh, List<String> metro}) async {
     _db ??= await MySqlConnection.connect(_kDbSettings);
     List<String> filters = [
       if (roomCol != null && roomCol >= 0)
         _roomColExpr(roomCol),
       if (priceLow != null || priceHigh != null)
         _priceExpr(priceLow, priceHigh),
+      if (metro != null && metro.isNotEmpty)
+        _metroExpr(metro),
     ];
     String query = filters.isEmpty ? '' : ' where ${filters.join('and ')}';
     query = 'select count(id) from datapars$query';
@@ -151,5 +157,9 @@ class CatalogRepository {
       if (high != null)
         '($_kPrice <= $high) ',
     ].join('and ');
+  }
+
+  String _metroExpr(List<String> metro) {
+    return '(${[for (var st in metro) '$_kMetro like "%$st%"'].join(' or ')}) ';
   }
 }

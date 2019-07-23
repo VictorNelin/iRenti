@@ -56,6 +56,7 @@ class _CatalogFilterPageState extends State<CatalogFilterPage> {
   int _rooms;
   double _priceLow = 0;
   double _priceHigh = 1;
+  List<String> _metro;
 
   CatalogBloc get _bloc => widget.bloc;
 
@@ -63,6 +64,7 @@ class _CatalogFilterPageState extends State<CatalogFilterPage> {
   void initState() {
     super.initState();
     _rooms = _bloc.roomsFilter;
+    _metro = _bloc.metroFilter;
   }
 
   @override
@@ -79,6 +81,7 @@ class _CatalogFilterPageState extends State<CatalogFilterPage> {
         rooms: _rooms,
         priceLow: posToVal(_priceLow, _minPrice, _maxPrice),
         priceHigh: posToVal(_priceHigh, _minPrice, _maxPrice),
+        metro: _metro,
       ));
     }
     return Scaffold(
@@ -211,7 +214,11 @@ class _CatalogFilterPageState extends State<CatalogFilterPage> {
               ],
             ),
           ),
-          ListEntry(title: 'Станции метро', child: Text('NYI')),
+          ListEntry(
+            title: 'Станции метро',
+            child: Text(_metro == null || _metro.isEmpty ? 'Указать' : '(${_metro.length}) Изменить'),
+            onTap: () => Navigator.pushNamed(context, '/catalog/filter/metro', arguments: _metro).then((nm) => setState(() => _metro = List.from(nm))),
+          ),
           const Divider(height: 0),
           Padding(
             padding: const EdgeInsets.only(left: 16.0, right: 16.0, top: 16.0, bottom: 64.0),
