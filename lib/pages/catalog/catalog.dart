@@ -215,17 +215,11 @@ class _CatalogPageState extends State<CatalogPage> with SingleTickerProviderStat
                                 Image.network(
                                   s,
                                   fit: BoxFit.cover,
+                                  frameBuilder: (ctx, child, frame, _) {
+                                    return Container(color: const Color(0xff272d30), child: child);
+                                  },
                                 ),
                             ],
-                          ),
-                          IgnorePointer(
-                            child: DecoratedBox(
-                              decoration: BoxDecoration(
-                                color: Colors.black54,
-                              ),
-                              position: DecorationPosition.foreground,
-                              child: SizedBox.expand(),
-                            ),
                           ),
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
