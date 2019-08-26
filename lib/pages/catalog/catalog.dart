@@ -184,7 +184,21 @@ class _CatalogPageState extends State<CatalogPage> with SingleTickerProviderStat
       builder: (context, state) {
         if (state is LoadedState) {
           if (state.entries.isEmpty) {
-            return const Center(child: CupertinoActivityIndicator());
+            return Center(
+              child: Opacity(
+                opacity: 0.5,
+                child: RichText(
+                  textAlign: TextAlign.center,
+                  text: TextSpan(
+                    style: Theme.of(context).textTheme.subhead,
+                    children: [
+                      TextSpan(text: '👀\n\n', style: TextStyle(fontSize: 48)),
+                      TextSpan(text: 'Здесь ничего нет'),
+                    ],
+                  ),
+                ),
+              ),
+            );
           }
           _count = state.entries.length;
           _canFetch = state.hasMore;
@@ -319,7 +333,13 @@ class _CatalogPageState extends State<CatalogPage> with SingleTickerProviderStat
                                                     SizedBox(width: 50, height: 50),
                                                     CircleAvatar(
                                                       radius: _selectedId == user.id ? 20 : 25,
-                                                      backgroundImage: NetworkImage(user.photoUrl),
+                                                      backgroundImage: user.photoUrl != null ? NetworkImage(user.photoUrl) : null,
+                                                      child: ClipOval(
+                                                        child: Padding(
+                                                          padding: const EdgeInsets.only(top: 10),
+                                                          child: user.photoUrl == null ? const Icon(Icons.person, size: 48) : null,
+                                                        ),
+                                                      ),
                                                     ),
                                                     Positioned(
                                                       top: 0,

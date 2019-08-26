@@ -149,8 +149,14 @@ class _DialogPageState extends State<DialogPage> {
             Padding(
               padding: const EdgeInsetsDirectional.only(end: 10),
               child: CircleAvatar(
-                backgroundImage: NetworkImage(item.from.photoUrl),
                 radius: 18,
+                backgroundImage: item.from.photoUrl != null ? NetworkImage(item.from.photoUrl) : null,
+                child: ClipOval(
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: 6),
+                    child: item.from.photoUrl == null ? const Icon(Icons.person, size: 36) : null,
+                  ),
+                ),
               ),
             ),
             Expanded(child: Column(

@@ -88,25 +88,43 @@ class _CatalogFilterPageState extends State<CatalogFilterPage> {
       body: ListView(
         children: <Widget>[
           SafeArea(
-            child: InkWell(
-              onTap: () {
-                _bloc.clearFilters();
-                Navigator.pop(context);
-              },
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: <Widget>[
-                  const SizedBox(width: 16.0, height: kToolbarHeight),
-                  Align(child: Text(
-                    'Закрыть',
-                    style: Theme.of(context).textTheme.subhead.copyWith(
-                      fontSize: 14.0,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: <Widget>[
+                InkWell(
+                  onTap: () {
+                    _bloc.clearFilters();
+                    Navigator.pop(context);
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Align(
+                      child: Text(
+                        'Очистить',
+                        style: Theme.of(context).textTheme.subhead.copyWith(
+                          fontSize: 14.0,
+                        ),
+                      ),
                     ),
-                  )),
-                  const SizedBox(width: 16.0),
-                ],
-              ),
+                  ),
+                ),
+                const SizedBox(height: kToolbarHeight),
+                InkWell(
+                  onTap: () => Navigator.pop(context),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Align(
+                      child: Text(
+                        'Закрыть',
+                        style: Theme.of(context).textTheme.subhead.copyWith(
+                          fontSize: 14.0,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
           const SizedBox(height: 8),

@@ -68,9 +68,19 @@ class _DialogsPageState extends State<DialogsPage> {
                               ),
                             ),
                             CircleAvatar(
+                              backgroundImage: entry.op(_uid).photoUrl != null ? NetworkImage(entry.op(_uid).photoUrl) : null,
+                              radius: 20,
+                              child: ClipOval(
+                                child: Padding(
+                                  padding: const EdgeInsets.only(top: 8),
+                                  child: entry.op(_uid).photoUrl == null ? const Icon(Icons.person, size: 40) : null,
+                                ),
+                              ),
+                            ),
+                            /*CircleAvatar(
                               backgroundImage: NetworkImage(entry.op(_uid).photoUrl),
                               radius: 20,
-                            ),
+                            ),*/
                             const SizedBox(width: 10),
                             Expanded(
                               child: Column(

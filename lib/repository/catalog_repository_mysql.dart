@@ -104,7 +104,7 @@ class CatalogRepository {
           data: doc.data['profile']?.map((v) => v is Timestamp ? v.toDate() : v)?.toList(growable: false),
         ),
     ];
-    if (profile.length == 7) profile = profile.skip(2).toList(growable: false);
+    if (profile?.length == 7) profile = profile.skip(2).toList(growable: false);
     List<double> ratings = List.from(users.map<double>((u) {
       if (u.data == null || u.data.isEmpty) return 0;
       double rating = 0;
