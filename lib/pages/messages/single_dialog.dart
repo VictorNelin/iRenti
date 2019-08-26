@@ -122,10 +122,13 @@ class _DialogPageState extends State<DialogPage> {
                         fontWeight: FontWeight.normal,
                         fontSize: 14,
                       )),
-                      Text('Хозяин:\n${data.owner}, ${data.phones[0]}', style: TextStyle(
-                        fontWeight: FontWeight.w500,
-                        fontSize: 12,
-                      )),
+                      Text(
+                        '${data.owner != null ? 'Хозяин:\n${data.owner}, ' : ''}${data.phones[0]}',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w500,
+                          fontSize: 12,
+                        ),
+                      ),
                     ],
                   ),
                 )),

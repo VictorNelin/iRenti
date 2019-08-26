@@ -15,6 +15,7 @@ class CatalogEntry {
   final List<String> photos;
   final List<double> location;
   final List<UserData> neighbors;
+  final List<String> undergrounds;
   final String description;
   final String conditions;
   final String owner;
@@ -32,6 +33,7 @@ class CatalogEntry {
     this.photos,
     this.location,
     this.neighbors,
+    this.undergrounds,
     this.description,
     this.conditions,
     this.owner,
@@ -50,6 +52,7 @@ class CatalogEntry {
       address: src['address']?.toString(),
       photos: (src['imgs']?.toString() ?? '').split(','),
       location: src['geodata']?.toString()?.split(',')?.map((s) => double.tryParse(s))?.toList(growable: false),
+      undergrounds: src['allundergrounds']?.toString()?.split(',')?.map((s) => s.split('-')[0])?.toList(growable: false),
       description: src['description']?.toString(),
       conditions: src['conditions']?.toString(),
       owner: src['authorname']?.toString(),
@@ -68,6 +71,7 @@ class CatalogEntry {
     'address': address,
     'imgs': photos.join(','),
     'geodata': location.join(','),
+    'allundergrounds': undergrounds?.map((s) => '$s-')?.join(','),
     'description': description,
     'conditions': conditions,
     'authorname': owner,
@@ -101,6 +105,7 @@ class CatalogEntry {
     address,
     photos,
     location,
+    undergrounds,
     neighbors,
     description,
     conditions,

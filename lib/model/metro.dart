@@ -14,7 +14,7 @@ const Map kLines = {
     'color': 30910,
   },
   4: {
-    'line': 'Филёвская линия',
+    'line': 'Филевская линия',
     'color': 49151,
   },
   5: {
@@ -46,7 +46,7 @@ const Map kLines = {
     'color': 8569024,
   },
   12: {
-    'line': 'Бутовская линия Лёгкого метро',
+    'line': 'Бутовская линия Легкого метро',
     'color': 10597332,
   },
   13: {
@@ -398,7 +398,7 @@ const List kStations = [
   },
   {
     'active': true,
-    'title': 'Воробьёвы горы',
+    'title': 'Воробьевы горы',
     'line': 1,
     'id': 16
   },
@@ -908,7 +908,7 @@ const List kStations = [
   },
   {
     'active': true,
-    'title': 'Молодёжная',
+    'title': 'Молодежная',
     'line': 3,
     'id': 55
   },
@@ -1016,7 +1016,7 @@ const List kStations = [
   },
   {
     'active': true,
-    'title': 'Новые Черёмушки',
+    'title': 'Новые Черемушки',
     'line': 6,
     'id': 103
   },
@@ -1358,7 +1358,7 @@ const List kStations = [
   },
   {
     'active': true,
-    'title': 'Савёловская',
+    'title': 'Савеловская',
     'line': 9,
     'id': 144
   },
@@ -1394,7 +1394,7 @@ const List kStations = [
   },
   {
     'active': true,
-    'title': 'Семёновская',
+    'title': 'Семеновская',
     'line': 3,
     'id': 44
   },
@@ -1604,7 +1604,7 @@ const List kStations = [
   },
   {
     'active': true,
-    'title': 'Тропарёво',
+    'title': 'Тропарево',
     'line': 1,
     'id': 193
   },
@@ -1634,7 +1634,7 @@ const List kStations = [
   },
   {
     'active': true,
-    'title': 'Тёплый стан',
+    'title': 'Теплый стан',
     'line': 6,
     'id': 107
   },
@@ -1700,7 +1700,7 @@ const List kStations = [
   },
   {
     'active': true,
-    'title': 'Улица академика Королёва',
+    'title': 'Улица академика Королева',
     'line': 13,
     'id': 189
   },
@@ -1730,7 +1730,7 @@ const List kStations = [
   },
   {
     'active': true,
-    'title': 'Филёвский парк',
+    'title': 'Филевский парк',
     'line': 4,
     'id': 63
   },
@@ -1760,13 +1760,13 @@ const List kStations = [
   },
   {
     'active': true,
-    'title': 'Хорошёво',
+    'title': 'Хорошево',
     'line': 17,
     'id': 283
   },
   {
     'active': true,
-    'title': 'Хорошёвская',
+    'title': 'Хорошевская',
     'line': 16,
     'id': 238
   },
@@ -1874,7 +1874,7 @@ const List kStations = [
   },
   {
     'active': true,
-    'title': 'Щёлковская',
+    'title': 'Щелковская',
     'line': 3,
     'id': 40
   },

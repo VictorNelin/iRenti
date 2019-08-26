@@ -130,8 +130,10 @@ class CatalogRepository {
       photos: on.photos,
       location: on.location,
       neighbors: users,
+      undergrounds: on.undergrounds,
       description: on.description,
       conditions: on.conditions,
+      phones: on.phones,
     );
   }
 
