@@ -259,7 +259,7 @@ class _ProfilePageState extends State<ProfilePage> {
             ),
           ),
         ),
-        if (_firstRun && widget.user == null)
+        if (_firstRun && _isEditing)
           Padding(
             padding: const EdgeInsets.only(left: 16, right: 16, bottom: 40.0),
             child: Text(
@@ -278,8 +278,8 @@ class _ProfilePageState extends State<ProfilePage> {
             title: _kTitles[i],
             child: Text(_toString(i, data != null ? data[i] : this.data)),
             padding: 16,
-            trailing: widget.user == null ? const Icon(Icons.edit, size: 16.0) : null,
-            onTap: widget.user == null ? () => _onTapEntry(context, i) : null,
+            trailing: _isEditing ? const Icon(Icons.edit, size: 16.0) : null,
+            onTap: _isEditing ? () => _onTapEntry(context, i) : null,
           ),
         if (widget.user == null)
           const Divider(color: Color.fromRGBO(0x27, 0x2D, 0x30, 0.08), height: 0.0),
