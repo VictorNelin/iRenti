@@ -146,7 +146,7 @@ class _AppState extends State<App> {
                     case 2:
                       return DialogsPage();
                     case 3:
-                      return ProfilePage();
+                      return ProfilePage(firstRun: settings.arguments != null);
                   }
                   return Material(
                     child: Center(

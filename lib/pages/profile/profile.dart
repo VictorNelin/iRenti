@@ -39,16 +39,21 @@ const List<List<String>> _kData = [
 
 class ProfilePage extends StatefulWidget {
   final UserData user;
+  final bool firstRun;
 
-  const ProfilePage({Key key, this.user}) : super(key: key);
+  const ProfilePage({Key key, this.user, this.firstRun = false}) : super(key: key);
 
   @override
-  _ProfilePageState createState() => _ProfilePageState();
+  _ProfilePageState createState() => _ProfilePageState(firstRun);
 }
 
 class _ProfilePageState extends State<ProfilePage> {
   List<dynamic> data;// = List<dynamic>.generate(7, (_) => null);
+  bool _firstRun = false;
+  bool _isEditing = false;
   bool _canSave = false;
+
+  _ProfilePageState(bool firstRun) : _isEditing = firstRun, _firstRun = firstRun;
 
   String _toString(int field, value) {
     if (value == null) {
@@ -166,38 +171,54 @@ class _ProfilePageState extends State<ProfilePage> {
       child: Row(
         children: <Widget>[
           GestureDetector(
-            onTap: user is UserData ? null : () {
+            onTap: _isEditing ? () {
               showDialog(
-                  context: context,
-                  builder: (ctx) => CupertinoAlertDialog(
-                    title: Text('Загрузить аватар'),
-                    actions: <Widget>[
-                      CupertinoDialogAction(
-                        child: Text('Сделать фото'),
-                        onPressed: () {
-                          BlocProvider.of<AuthenticationBloc>(context).dispatch(UploadAvatar(true));
-                        },
-                      ),
-                      CupertinoDialogAction(
-                        child: Text('Выбрать из галереи'),
-                        onPressed: () {
-                          BlocProvider.of<AuthenticationBloc>(context).dispatch(UploadAvatar(false));
-                        },
-                      ),
-                    ],
-                  ),
+                context: context,
+                builder: (ctx) => CupertinoAlertDialog(
+                  title: Text('Загрузить аватар'),
+                  actions: <Widget>[
+                    CupertinoDialogAction(
+                      child: Text('Сделать фото'),
+                      onPressed: () {
+                        BlocProvider.of<AuthenticationBloc>(context).dispatch(UploadAvatar(true));
+                      },
+                    ),
+                    CupertinoDialogAction(
+                      child: Text('Выбрать из галереи'),
+                      onPressed: () {
+                        BlocProvider.of<AuthenticationBloc>(context).dispatch(UploadAvatar(false));
+                      },
+                    ),
+                  ],
+                ),
               );
-            },
-            child: CircleAvatar(
-              radius: 45.0,
-              backgroundColor: const Color(0xFFF2F2F2),
-              child: Visibility(
-                visible: user.photoUrl == null || user.photoUrl.isEmpty,
-                child: const Icon(Icons.add, size: 32.0, color: Color(0xFFEF5353)),
+            } : null,
+            child: ClipOval(
+              child: Stack(
+                children: <Widget>[
+                  CircleAvatar(
+                    radius: 45.0,
+                    backgroundColor: const Color(0xFFF2F2F2),
+                    child: Visibility(
+                      visible: user.photoUrl == null || user.photoUrl.isEmpty,
+                      child: const Icon(Icons.add, size: 32.0, color: Color(0xFFEF5353)),
+                    ),
+                    backgroundImage: user.photoUrl != null && user.photoUrl.isNotEmpty
+                        ? NetworkImage(user.photoUrl)
+                        : null,
+                  ),
+                  Positioned.fill(
+                    child: Visibility(
+                      visible: _isEditing,
+                      child: Container(
+                        color: Colors.black45,
+                        alignment: Alignment.center,
+                        child: const Icon(Icons.edit, size: 18, color: Colors.white),
+                      ),
+                    ),
+                  ),
+                ],
               ),
-              backgroundImage: user.photoUrl != null && user.photoUrl.isNotEmpty
-                  ? NetworkImage(user.photoUrl)
-                  : null,
             ),
           ),
           const SizedBox(width: 20.0),
@@ -238,7 +259,7 @@ class _ProfilePageState extends State<ProfilePage> {
             ),
           ),
         ),
-        if (widget.user == null)
+        if (_firstRun && widget.user == null)
           Padding(
             padding: const EdgeInsets.only(left: 16, right: 16, bottom: 40.0),
             child: Text(
@@ -265,15 +286,21 @@ class _ProfilePageState extends State<ProfilePage> {
         if (widget.user == null)
           Padding(
             padding: const EdgeInsets.only(left: 16.0, right: 16.0, top: 16.0, bottom: 64.0),
-            child: FlatButton(
-              child: Text('СОХРАНИТЬ'),
-              color: const Color(0xFF272D30),
-              onPressed: _canSave ? () {
-                BlocProvider.of<AuthenticationBloc>(context).dispatch(UpdateProfile(this.data));
+            child: _isEditing ? FlatButton(
+              child: const Text('СОХРАНИТЬ'),
+              color: const Color(0xFFEF5353),
+              onPressed: () {
+                if (_canSave) BlocProvider.of<AuthenticationBloc>(context).dispatch(UpdateProfile(this.data));
                 setState(() {
+                  _isEditing = false;
+                  _firstRun = false;
                   _canSave = false;
                 });
-              } : null,
+              },
+            ) : FlatButton(
+              child: const Text('ИЗМЕНИТЬ'),
+              color: const Color(0xFF272D30),
+              onPressed: () => setState(() => _isEditing = true),
             ),
           ),
       ],
