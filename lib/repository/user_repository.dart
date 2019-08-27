@@ -153,4 +153,52 @@ class UserRepository {
     await _firestore.collection('users').document(uid).setData({'fave': faveIds}, merge: true);
     return faveIds;
   }
+
+  Future<FirebaseUser> updateName(String name) async {
+    FirebaseUser user = await _firebaseAuth.currentUser();
+    await user.updateProfile(UserUpdateInfo()..displayName = name);
+    await user.reload();
+    await _firestore.collection('users').document(user.uid).setData(
+      {'display_name': name},
+      merge: true,
+    );
+    return user;
+  }
+
+  Future<String> updatePhone({String phone}) async {
+    Completer<String> _vId = Completer<String>();
+    _registrar = Completer();
+    await _firebaseAuth.verifyPhoneNumber(
+      phoneNumber: phone,
+      timeout: const Duration(milliseconds: 0),
+      verificationCompleted: (cred) async {
+        await _firebaseAuth.signInWithCredential(cred);
+        _registrar?.complete();
+        _registrar = null;
+      },
+      verificationFailed: (error) {
+        print(error.message);
+        _vId.completeError(error);
+      },
+      codeSent: (vId, [forceResend]) {
+        _vId.complete(vId);
+      },
+      codeAutoRetrievalTimeout: (vId) {
+        _vId.complete(vId);
+      },
+    );
+    return _vId.future;
+  }
+
+  Future updatePhoneVerify({String vId, String code}) async {
+    AuthCredential cred = PhoneAuthProvider.getCredential(
+      verificationId: vId,
+      smsCode: code,
+    );
+    (await _firebaseAuth.currentUser()).updatePhoneNumberCredential(cred);
+    Future reg = _registrar?.future ?? Future.delayed(const Duration(milliseconds: 300));
+    _registrar?.complete();
+    _registrar = null;
+    return reg;
+  }
 }

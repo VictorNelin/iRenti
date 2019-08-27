@@ -29,6 +29,10 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
       yield* _mapUploadAvatarToState(event.useCamera);
     } else if (event is ToggleFave) {
       yield* _mapToggleFaveToState(event.id);
+    } else if (event is UpdateName) {
+      yield* _mapUpdateNameToState(event.name);
+    } else if (event is UpdatePhone) {
+      yield* _mapUpdatePhoneToState(event.phone);
     }
   }
 
@@ -86,6 +90,26 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
       try {
         List<String> faves = await _userRepository.toggleFave(state.fave, id);
         yield Authenticated(state.user, state.data, faves);
+      } catch (_) {}
+    }
+  }
+
+  Stream<AuthenticationState> _mapUpdateNameToState(String name) async* {
+    final state = currentState;
+    if (state is Authenticated) {
+      try {
+        final user = await _userRepository.updateName(name);
+        yield Authenticated(user, state.data, state.fave);
+      } catch (_) {}
+    }
+  }
+
+  Stream<AuthenticationState> _mapUpdatePhoneToState(String phone) async* {
+    final state = currentState;
+    if (state is Authenticated) {
+      try {
+        final user = await _userRepository.updateName(phone);
+        yield Authenticated(user, state.data, state.fave);
       } catch (_) {}
     }
   }
@@ -172,4 +196,22 @@ class ToggleFave extends AuthenticationEvent {
 
   @override
   String toString() => 'ToggleFave { id: $id }';
+}
+
+class UpdateName extends AuthenticationEvent {
+  final String name;
+
+  UpdateName(this.name);
+
+  @override
+  String toString() => 'UpdateName { name: $name }';
+}
+
+class UpdatePhone extends AuthenticationEvent {
+  final String phone;
+
+  UpdatePhone(this.phone);
+
+  @override
+  String toString() => 'UpdatePhone { phone: $phone }';
 }
