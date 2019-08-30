@@ -240,7 +240,7 @@ class _CatalogFilterPageState extends State<CatalogFilterPage> {
           const Divider(height: 0),
           Padding(
             padding: const EdgeInsets.only(left: 16.0, right: 16.0, top: 16.0, bottom: 64.0),
-            child: BlocBuilder<CatalogEvent, CatalogState>(
+            child: BlocBuilder<CatalogBloc, CatalogState>(
               bloc: _bloc,
               builder: (ctx, state) {
                 if (state is LoadedState) {

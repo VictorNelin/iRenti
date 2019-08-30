@@ -4,7 +4,6 @@ import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 import 'package:image_picker/image_picker.dart';
 
 export 'package:firebase_auth/firebase_auth.dart' show FirebaseUser;
@@ -14,14 +13,12 @@ const _kEmptyData = [null, null, null, null, null, null, null];
 
 class UserRepository {
   final FirebaseAuth _firebaseAuth;
-  final GoogleSignIn _googleSignIn;
   final Firestore _firestore;
   final FirebaseStorage _storage;
   Completer _registrar;
 
-  UserRepository({FirebaseAuth firebaseAuth, GoogleSignIn googleSignIn, Firestore firestore, FirebaseStorage storage})
+  UserRepository({FirebaseAuth firebaseAuth, Firestore firestore, FirebaseStorage storage})
       : _firebaseAuth = firebaseAuth ?? FirebaseAuth.instance,
-        _googleSignIn = googleSignIn ?? GoogleSignIn(),
         _firestore = firestore ?? Firestore.instance,
         _storage = storage ?? FirebaseStorage.instance;
 
@@ -83,10 +80,7 @@ class UserRepository {
   Future get verifyState => _registrar?.future;
 
   Future signOut() async {
-    return Future.wait([
-      _firebaseAuth.signOut(),
-      _googleSignIn.signOut(),
-    ]);
+    return _firebaseAuth.signOut();
   }
 
   Future<bool> isSignedIn() async {

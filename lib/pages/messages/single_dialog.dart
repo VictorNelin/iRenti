@@ -264,7 +264,7 @@ class _DialogPageState extends State<DialogPage> {
       body: Column(
         children: <Widget>[
           Expanded(
-            child: BlocBuilder<MessagesEvent, MessagesState>(
+            child: BlocBuilder<MessagesBloc, MessagesState>(
               bloc: _messagesBloc,
               builder: (ctx, state) {
                 if (state is MessagesLoadedState) {

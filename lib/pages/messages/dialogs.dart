@@ -32,7 +32,7 @@ class _DialogsPageState extends State<DialogsPage> {
       body: CustomScrollView(
         slivers: <Widget>[
           SliverPersistentHeader(delegate: TitleBarDelegate(MediaQuery.of(context).padding.top), pinned: true),
-          BlocBuilder<MessagesEvent, MessagesState>(
+          BlocBuilder<MessagesBloc, MessagesState>(
             bloc: _messagesBloc,
             builder: (context, state) {
               if (state is MessagesLoadedState) {
