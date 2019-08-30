@@ -316,7 +316,7 @@ class _ProfilePageState extends State<ProfilePage> {
           child: widget.user == null ? Row(
             children: <Widget>[
               InkWell(
-                onTap: () {},
+                onTap: () => Navigator.pushNamed(context, '/settings'),
                 child: const Padding(
                   padding: EdgeInsets.all(16.0),
                   child: Icon(Icons.settings),

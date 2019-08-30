@@ -8,6 +8,8 @@ import 'package:irenti/utils/validators.dart';
 import 'package:irenti/widgets/list_tile.dart';
 
 class SettingsPage extends StatelessWidget {
+  const SettingsPage({Key key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -54,11 +56,12 @@ class SettingsPage extends StatelessWidget {
           ListEntry(
             title: 'Имя',
             trailing: const Icon(Icons.edit, size: 16.0),
-            onTap: () => Navigator.push(context, CupertinoPageRoute(builder: (ctx) => ChangeNamePage())),
+            onTap: () => Navigator.push(context, CupertinoPageRoute(builder: (ctx) => _ChangeNamePage())),
           ),
           ListEntry(
             title: 'Номер телефона',
             trailing: const Icon(Icons.edit, size: 16.0),
+            onTap: () => Navigator.push(context, CupertinoPageRoute(builder: (ctx) => _ChangePhonePage())),
           ),
           ListEntry(
             title: 'Политика конфиденциальности',
@@ -76,7 +79,7 @@ class SettingsPage extends StatelessWidget {
   }
 }
 
-class ChangeNamePage extends StatelessWidget {
+class _ChangeNamePage extends StatelessWidget {
   final ValueNotifier<String> _name = ValueNotifier(null);
 
   @override
@@ -183,12 +186,12 @@ class ChangeNamePage extends StatelessWidget {
   }
 }
 
-class ChangePhonePage extends StatefulWidget {
+class _ChangePhonePage extends StatefulWidget {
   @override
   _ChangePhonePageState createState() => _ChangePhonePageState();
 }
 
-class _ChangePhonePageState extends State<ChangePhonePage> with SingleTickerProviderStateMixin {
+class _ChangePhonePageState extends State<_ChangePhonePage> with SingleTickerProviderStateMixin {
   final StreamController<String> _state = StreamController<String>();
   AuthenticationBloc _bloc;
   TabController _tabs;
@@ -202,7 +205,7 @@ class _ChangePhonePageState extends State<ChangePhonePage> with SingleTickerProv
   }
 
   @override
-  void didUpdateWidget(ChangePhonePage oldWidget) {
+  void didUpdateWidget(_ChangePhonePage oldWidget) {
     super.didUpdateWidget(oldWidget);
     _bloc = BlocProvider.of<AuthenticationBloc>(context);
   }

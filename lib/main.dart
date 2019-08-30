@@ -19,6 +19,7 @@ import 'pages/catalog/catalog_info.dart';
 import 'pages/messages/dialogs.dart';
 import 'pages/messages/single_dialog.dart';
 import 'pages/profile/profile.dart';
+import 'pages/settings/settings.dart';
 
 void main() {
   if (kReleaseMode) {
@@ -183,6 +184,8 @@ class _AppState extends State<App> {
                 title: args['title'],
               ),
             );
+          } else if (settings.name == '/settings') {
+            return CupertinoPageRoute(builder: (ctx) => const SettingsPage());
           }
           return CupertinoPageRoute(builder: (_) => const SizedBox());
         },
