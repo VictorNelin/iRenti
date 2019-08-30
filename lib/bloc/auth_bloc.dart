@@ -7,6 +7,7 @@ import 'package:meta/meta.dart';
 
 class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> {
   final UserRepository _userRepository;
+  StreamController<String> _phoneStream;
 
   AuthenticationBloc({@required UserRepository userRepository})
       : assert(userRepository != null),
@@ -32,7 +33,7 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
     } else if (event is UpdateName) {
       yield* _mapUpdateNameToState(event.name);
     } else if (event is UpdatePhone) {
-      yield* _mapUpdatePhoneToState(event.phone);
+      yield* _mapUpdatePhoneToState(event.data);
     }
   }
 
@@ -104,11 +105,11 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
     }
   }
 
-  Stream<AuthenticationState> _mapUpdatePhoneToState(String phone) async* {
+  Stream<AuthenticationState> _mapUpdatePhoneToState(Stream<String> data) async* {
     final state = currentState;
     if (state is Authenticated) {
       try {
-        final user = await _userRepository.updateName(phone);
+        final user = await _userRepository.updatePhone(data: data);
         yield Authenticated(user, state.data, state.fave);
       } catch (_) {}
     }
@@ -116,6 +117,7 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
 
   @override
   void dispose() {
+    _phoneStream?.close();
     _userRepository.getUser().then((user) {
       if (user != null && (user.email == null || user.email.isEmpty)) {
         _userRepository.signOut();
@@ -208,10 +210,10 @@ class UpdateName extends AuthenticationEvent {
 }
 
 class UpdatePhone extends AuthenticationEvent {
-  final String phone;
+  final Stream<String> data;
 
-  UpdatePhone(this.phone);
+  UpdatePhone(this.data);
 
   @override
-  String toString() => 'UpdatePhone { phone: $phone }';
+  String toString() => 'UpdatePhone { data: $data }';
 }

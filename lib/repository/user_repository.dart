@@ -165,40 +165,47 @@ class UserRepository {
     return user;
   }
 
-  Future<String> updatePhone({String phone}) async {
-    Completer<String> _vId = Completer<String>();
-    _registrar = Completer();
-    await _firebaseAuth.verifyPhoneNumber(
-      phoneNumber: phone,
-      timeout: const Duration(milliseconds: 0),
-      verificationCompleted: (cred) async {
-        await _firebaseAuth.signInWithCredential(cred);
-        _registrar?.complete();
-        _registrar = null;
-      },
-      verificationFailed: (error) {
-        print(error.message);
-        _vId.completeError(error);
-      },
-      codeSent: (vId, [forceResend]) {
-        _vId.complete(vId);
-      },
-      codeAutoRetrievalTimeout: (vId) {
-        _vId.complete(vId);
-      },
-    );
-    return _vId.future;
-  }
-
-  Future updatePhoneVerify({String vId, String code}) async {
-    AuthCredential cred = PhoneAuthProvider.getCredential(
-      verificationId: vId,
-      smsCode: code,
-    );
-    (await _firebaseAuth.currentUser()).updatePhoneNumberCredential(cred);
-    Future reg = _registrar?.future ?? Future.delayed(const Duration(milliseconds: 300));
-    _registrar?.complete();
-    _registrar = null;
-    return reg;
+  Future<FirebaseUser> updatePhone({Stream<String> data}) async {
+    String _vId;
+    Completer<FirebaseUser> _user = Completer<FirebaseUser>();
+    int i = 0;
+    StreamSubscription dataSub;
+    dataSub = data.listen((s) {
+      if (i == 0) {
+        ++i;
+        _firebaseAuth.verifyPhoneNumber(
+          phoneNumber: s,
+          timeout: const Duration(milliseconds: 0),
+          verificationCompleted: (cred) async {
+            (await _firebaseAuth.currentUser()).updatePhoneNumberCredential(cred).then((_) {
+              _user.complete(_firebaseAuth.currentUser());
+              dataSub.cancel();
+            });
+          },
+          verificationFailed: (error) {
+            print(error.message);
+            _user.completeError(error);
+          },
+          codeSent: (vId, [forceResend]) {
+            _vId = vId;
+          },
+          codeAutoRetrievalTimeout: (vId) {
+            _vId = vId;
+          },
+        );
+      } else if (i == 1) {
+        AuthCredential cred = PhoneAuthProvider.getCredential(
+          verificationId: _vId,
+          smsCode: s,
+        );
+        _firebaseAuth.currentUser().then((u) {
+          u.updatePhoneNumberCredential(cred).then((_) {
+            _user.complete(_firebaseAuth.currentUser());
+            dataSub.cancel();
+          });
+        });
+      }
+    });
+    return _user.future;
   }
 }
