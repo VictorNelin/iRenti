@@ -330,13 +330,8 @@ class _ChangePhonePageState extends State<ChangePhonePage> with SingleTickerProv
                                                   Form.of(ctx).save();
                                                   _bloc.dispatch(UpdatePhone(_state.stream));
                                                   _state.add(_phone);
-                                                  LocalHistoryEntry entry = LocalHistoryEntry(onRemove: () => _tabs.animateTo(0));
-                                                  ModalRoute.of(context).addLocalHistoryEntry(entry);
                                                   _tabs.animateTo(1);
-                                                  _bloc.state.listen((_) {
-                                                    entry.remove();
-                                                    Navigator.pop(context);
-                                                  });
+                                                  _bloc.state.listen((_) => Navigator.pop(context));
                                                 }
                                               },
                                             ),
