@@ -5,6 +5,7 @@ import 'package:irenti/bloc/auth_bloc.dart';
 import 'package:irenti/model/user.dart';
 import 'package:irenti/widgets/radio_group.dart';
 import 'package:irenti/widgets/list_tile.dart';
+import 'package:irenti/widgets/title_bar.dart';
 
 const List<String> _kTitles = ['Дата рождения', 'Род деятельности', 'График работы', 'Животные', 'Уборка', 'Отношение к курению', 'Вечеринки'];
 const List<List<String>> _kData = [
@@ -248,61 +249,56 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Widget _buildBody(BuildContext context, dynamic user, List data) {
-    return ListView(
-      padding: EdgeInsets.zero,
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(left: 16, right: 16, top: 32, bottom: 40),
-          child: Text(
-            'Профиль',
-            style: Theme.of(context).textTheme.headline.copyWith(
-            ),
-          ),
-        ),
-        if (_firstRun && _isEditing)
-          Padding(
-            padding: const EdgeInsets.only(left: 16, right: 16, bottom: 40.0),
-            child: Text(
-              'Добавьте информацию о себе.\n'
-                  'Это поможет точнее подобрать жилье\n'
-                  'и познакомить вас с соседями.',
-              style: Theme.of(context).textTheme.body1.copyWith(
-                fontWeight: FontWeight.normal,
-                fontSize: 14.0,
+    return CustomScrollView(
+      primary: false,
+      slivers: <Widget>[
+        SliverPersistentHeader(delegate: TitleBarDelegate('Профиль', 0), pinned: true),
+        SliverList(delegate: SliverChildListDelegate([
+          if (_firstRun && _isEditing)
+            Padding(
+              padding: const EdgeInsets.only(left: 16, right: 16, bottom: 40.0),
+              child: Text(
+                'Добавьте информацию о себе.\n'
+                    'Это поможет точнее подобрать жилье\n'
+                    'и познакомить вас с соседями.',
+                style: Theme.of(context).textTheme.body1.copyWith(
+                  fontWeight: FontWeight.normal,
+                  fontSize: 14.0,
+                ),
               ),
             ),
-          ),
-        _buildHeader(context, user),
-        for (int i = 0; i < 7; ++i)
-          ListEntry(
-            title: _kTitles[i],
-            child: Text(_toString(i, data != null ? data[i] : this.data)),
-            padding: 16,
-            trailing: _isEditing ? const Icon(Icons.edit, size: 16.0) : null,
-            onTap: _isEditing ? () => _onTapEntry(context, i) : null,
-          ),
-        if (widget.user == null)
-          const Divider(color: Color.fromRGBO(0x27, 0x2D, 0x30, 0.08), height: 0.0),
-        if (widget.user == null)
-          Padding(
-            padding: const EdgeInsets.only(left: 16.0, right: 16.0, top: 16.0, bottom: 64.0),
-            child: _isEditing ? FlatButton(
-              child: const Text('СОХРАНИТЬ'),
-              color: const Color(0xFFEF5353),
-              onPressed: () {
-                if (_canSave) BlocProvider.of<AuthenticationBloc>(context).dispatch(UpdateProfile(this.data));
-                setState(() {
-                  _isEditing = false;
-                  _firstRun = false;
-                  _canSave = false;
-                });
-              },
-            ) : FlatButton(
-              child: const Text('ИЗМЕНИТЬ'),
-              color: const Color(0xFF272D30),
-              onPressed: () => setState(() => _isEditing = true),
+          _buildHeader(context, user),
+          for (int i = 0; i < 7; ++i)
+            ListEntry(
+              title: _kTitles[i],
+              child: Text(_toString(i, data != null ? data[i] : this.data)),
+              padding: 16,
+              trailing: _isEditing ? const Icon(Icons.edit, size: 16.0) : null,
+              onTap: _isEditing ? () => _onTapEntry(context, i) : null,
             ),
-          ),
+          if (widget.user == null)
+            const Divider(color: Color.fromRGBO(0x27, 0x2D, 0x30, 0.08), height: 0.0),
+          if (widget.user == null)
+            Padding(
+              padding: const EdgeInsets.only(left: 16.0, right: 16.0, top: 16.0, bottom: 64.0),
+              child: _isEditing ? FlatButton(
+                child: const Text('СОХРАНИТЬ'),
+                color: const Color(0xFFEF5353),
+                onPressed: () {
+                  if (_canSave) BlocProvider.of<AuthenticationBloc>(context).dispatch(UpdateProfile(this.data));
+                  setState(() {
+                    _isEditing = false;
+                    _firstRun = false;
+                    _canSave = false;
+                  });
+                },
+              ) : FlatButton(
+                child: const Text('ИЗМЕНИТЬ'),
+                color: const Color(0xFF272D30),
+                onPressed: () => setState(() => _isEditing = true),
+              ),
+            ),
+        ])),
       ],
     );
   }
@@ -361,7 +357,7 @@ class _ProfilePageState extends State<ProfilePage> {
         ),
       ),
       body: Theme(
-        data: Theme.of(context).copyWith(canvasColor: Colors.transparent),
+        data: Theme.of(context),//.copyWith(canvasColor: Colors.transparent),
         child: widget.user == null ? BlocBuilder(
           bloc: BlocProvider.of<AuthenticationBloc>(context),
           builder: (ctx, state) {

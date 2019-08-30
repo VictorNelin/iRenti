@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:irenti/bloc/auth_bloc.dart';
 import 'package:irenti/bloc/messages_bloc.dart';
 import 'package:irenti/repository/messages_repository.dart';
+import 'package:irenti/widgets/title_bar.dart';
 
 class DialogsPage extends StatefulWidget {
   @override
@@ -31,7 +32,8 @@ class _DialogsPageState extends State<DialogsPage> {
     return Scaffold(
       body: CustomScrollView(
         slivers: <Widget>[
-          SliverPersistentHeader(delegate: TitleBarDelegate(MediaQuery.of(context).padding.top), pinned: true),
+          SliverPersistentHeader(delegate: TitleBarDelegate('Общение', MediaQuery.of(context).padding.top, () {}), pinned: true),
+          const SliverToBoxAdapter(child: Divider(height: 0)),
           BlocBuilder<MessagesBloc, MessagesState>(
             bloc: _messagesBloc,
             builder: (context, state) {
@@ -130,57 +132,5 @@ class _DialogsPageState extends State<DialogsPage> {
         ],
       ),
     );
-  }
-}
-
-class TitleBarDelegate extends SliverPersistentHeaderDelegate {
-  final double topPadding;
-
-  const TitleBarDelegate(this.topPadding);
-
-  @override
-  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
-    return DefaultTextStyle(
-      style: Theme.of(context).textTheme.headline,
-      child: Stack(
-        children: <Widget>[
-          Container(
-            color: Theme.of(context).canvasColor,
-            height: (maxExtent - shrinkOffset).clamp(minExtent, maxExtent).toDouble(),
-            foregroundDecoration: BoxDecoration(
-              border: Border(bottom: Divider.createBorderSide(context)),
-            ),
-          ),
-          Positioned(
-            top: 4 + topPadding,
-            right: 4,
-            child: IconButton(
-              onPressed: () {},//=> Navigator.pop(context),
-              icon: const Icon(Icons.search),
-            ),
-          ),
-          Positioned(
-            top: topPadding,
-            left: 20,
-            bottom: 0,
-            child: Align(
-              alignment: Alignment(0, 40 / (40 + kToolbarHeight) * ((60 - shrinkOffset.clamp(0.0, 60.0)) / 60)),
-              child: const Text('Общение'),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  @override
-  double get maxExtent => kToolbarHeight + 60 + topPadding;
-
-  @override
-  double get minExtent => kToolbarHeight + topPadding;
-
-  @override
-  bool shouldRebuild(SliverPersistentHeaderDelegate oldDelegate) {
-    return false;
   }
 }
