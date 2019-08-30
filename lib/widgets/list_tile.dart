@@ -42,13 +42,14 @@ class ListEntry extends StatelessWidget {
                           style: Theme.of(context).textTheme.subhead,
                         ),
                       ),
-                      Padding(
-                        padding: EdgeInsets.only(bottom: 20),
-                        child: DefaultTextStyle(
-                          style: Theme.of(context).textTheme.body1,
-                          child: child,
+                      if (child != null)
+                        Padding(
+                          padding: EdgeInsets.only(bottom: 20),
+                          child: DefaultTextStyle(
+                            style: Theme.of(context).textTheme.body1,
+                            child: child,
+                          ),
                         ),
-                      ),
                     ],
                   ),
                 ),

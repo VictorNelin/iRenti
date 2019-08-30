@@ -162,7 +162,7 @@ class UserRepository {
       {'display_name': name},
       merge: true,
     );
-    return user;
+    return _firebaseAuth.currentUser();
   }
 
   Future<FirebaseUser> updatePhone({Stream<String> data}) async {
@@ -192,7 +192,7 @@ class UserRepository {
           codeAutoRetrievalTimeout: (vId) {
             _vId = vId;
           },
-        );
+        ).catchError((e) => print(e));
       } else if (i == 1) {
         AuthCredential cred = PhoneAuthProvider.getCredential(
           verificationId: _vId,
@@ -202,8 +202,8 @@ class UserRepository {
           u.updatePhoneNumberCredential(cred).then((_) {
             _user.complete(_firebaseAuth.currentUser());
             dataSub.cancel();
-          });
-        });
+          }, onError: (e) => print(e));
+        }, onError: (e) => print(e));
       }
     });
     return _user.future;

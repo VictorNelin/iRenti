@@ -73,6 +73,7 @@ class SettingsPage extends StatelessWidget {
             trailing: const Icon(Icons.arrow_forward_ios, size: 16.0),
             onTap: () {},
           ),
+          const Divider(height: 0),
         ],
       ),
     );
@@ -81,6 +82,7 @@ class SettingsPage extends StatelessWidget {
 
 class _ChangeNamePage extends StatelessWidget {
   final ValueNotifier<String> _name = ValueNotifier(null);
+  final ValueNotifier<bool> _valid = ValueNotifier(true);
 
   @override
   Widget build(BuildContext context) {
@@ -116,70 +118,82 @@ class _ChangeNamePage extends StatelessWidget {
       ),
       body: Form(
         autovalidate: true,
-        child: Builder(
-          builder: (ctx) {
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: <Widget>[
-                const SizedBox(height: 40.0),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Text(
-                    'Редактирование имени',
-                    style: Theme.of(context).textTheme.headline,
-                  ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[
+            const SizedBox(height: 40.0),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Text(
+                'Редактирование имени',
+                style: Theme.of(context).textTheme.headline,
+              ),
+            ),
+            const SizedBox(height: 40.0),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: TextFormField(
+                initialValue: _name.value,
+                decoration: InputDecoration(
+                  labelText: 'Имя',
+                  labelStyle: Theme.of(context).textTheme.subhead,
+                  alignLabelWithHint: true,
+                  enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Theme.of(context).textTheme.subhead.color)),
+                  focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: Theme.of(context).textTheme.subhead.color, width: 2.0)),
                 ),
-                const SizedBox(height: 40.0),
-                TextFormField(
-                  initialValue: _name.value,
-                  decoration: InputDecoration(
-                    labelText: 'Имя',
-                    labelStyle: Theme.of(context).textTheme.subhead,
-                    alignLabelWithHint: true,
-                    enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: Theme.of(context).textTheme.subhead.color)),
-                    focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: Theme.of(context).textTheme.subhead.color, width: 2.0)),
-                  ),
-                  style: Theme.of(context).textTheme.subhead,
-                  textCapitalization: TextCapitalization.sentences,
-                  validator: (s) => s == null || s.trim().isEmpty ? 'Введите имя' : null,
-                  onSaved: (s) => _name.value = s,
+                style: Theme.of(context).textTheme.subhead,
+                textCapitalization: TextCapitalization.sentences,
+                validator: (s) {
+                  if (s == null || s.trim().isEmpty) {
+                    _valid.value = false;
+                    return 'Введите имя';
+                  } else {
+                    _valid.value = true;
+                    return null;
+                  }
+                },
+                onSaved: (s) => _name.value = s,
+              ),
+            ),
+            const Expanded(child: SizedBox()),
+            Container(
+              decoration: BoxDecoration(
+                border: Border(
+                  top: Divider.createBorderSide(context, width: 1.0),
                 ),
-                const Expanded(child: SizedBox()),
-                Container(
-                  decoration: BoxDecoration(
-                    border: Border(
-                      top: Divider.createBorderSide(context, width: 1.0),
-                    ),
-                  ),
+              ),
+              child: SafeArea(
+                child: ButtonTheme.bar(
                   child: SafeArea(
-                    child: ButtonTheme.bar(
-                      child: SafeArea(
-                        top: false,
-                        child: ButtonBar(
-                          children: <Widget>[
-                            FlatButton(
+                    top: false,
+                    child: ButtonBar(
+                      children: <Widget>[
+                        ValueListenableBuilder<bool>(
+                          valueListenable: _valid,
+                          builder: (ctx, snapshot, child) {
+                            return FlatButton(
                               child: Text(
                                 'Сохранить',
                                 style: Theme.of(context).textTheme.subhead,
                               ),
                               textColor: const Color(0xFF272D30),
                               disabledTextColor: const Color(0x61272D30),
-                              onPressed: Form.of(ctx).validate() ? () {
+                              onPressed: snapshot ? () {
                                 Form.of(ctx).save();
                                 BlocProvider.of<AuthenticationBloc>(context)
                                   ..dispatch(UpdateName(_name.value))
-                                  ..state.listen((_) => Navigator.pop(context));
+                                  ..state.skip(1).listen((_) => Navigator.pop(context));
                               } : null,
-                            ),
-                          ],
+                            );
+                          },
                         ),
-                      ),
+                      ],
                     ),
                   ),
                 ),
-              ],
-            );
-          },
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -334,7 +348,7 @@ class _ChangePhonePageState extends State<_ChangePhonePage> with SingleTickerPro
                                                   _bloc.dispatch(UpdatePhone(_state.stream));
                                                   _state.add(_phone);
                                                   _tabs.animateTo(1);
-                                                  _bloc.state.listen((_) => Navigator.pop(context));
+                                                  _bloc.state.skip(1).listen((_) => Navigator.pop(context));
                                                 }
                                               },
                                             ),
