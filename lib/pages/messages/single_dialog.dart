@@ -140,7 +140,14 @@ class _DialogPageState extends State<DialogPage> {
     );
   }
 
-  Widget _buildEntry(BuildContext context, Message item) {
+  Widget _buildEntry(BuildContext context, Message item, Conversation chat) {
+    if (item.data != null) {
+      if (item.data == 0) return const SizedBox();
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: _buildDataCard(context, chat.data[0]),
+      );
+    }
     return Padding(
       padding: const EdgeInsets.only(left: 20, right: 20, top: 16, bottom: 8),
       child: Directionality(
@@ -200,7 +207,7 @@ class _DialogPageState extends State<DialogPage> {
                       children: [
                         TextSpan(
                           style: TextStyle(fontFamily: 'MaterialIcons', color: const Color(0xff79be63)),
-                          text: item.read
+                          text: item.timestamp < chat.lastReadTime
                               ? String.fromCharCode(Icons.done_all.codePoint)
                               : String.fromCharCode(Icons.done.codePoint),
                         ),
@@ -272,12 +279,15 @@ class _DialogPageState extends State<DialogPage> {
                     Navigator.pop(context);
                     return null;
                   });
-                  if (chat == null) return SizedBox();
+                  if (chat == null) return const SizedBox();
                   _startedId = chat.startedById;
                   if ((_lastLength ?? 0) != chat.messages.length) {
                     _lastLength = chat.messages.length;
                     _sender?.complete();
                     _sender = null;
+                  }
+                  if (chat.messages.isNotEmpty && !chat.messages.last.out(_uid) && chat.lastReadTime <= chat.messages.last.timestamp) {
+                    _messagesBloc.dispatch(MessagesReadEvent(chat.id));
                   }
                   return CustomScrollView(
                     controller: _scrollController,
@@ -285,7 +295,7 @@ class _DialogPageState extends State<DialogPage> {
                     slivers: <Widget>[
                       const SliverToBoxAdapter(child: SizedBox(height: 20)),
                       SliverList(delegate: SliverChildBuilderDelegate((ctx, i) {
-                        return _buildEntry(ctx, chat.messages[chat.messages.length - 1 - i]);
+                        return _buildEntry(ctx, chat.messages[chat.messages.length - 1 - i], chat);
                       }, childCount: chat.messages.length)),
                       SliverToBoxAdapter(
                         child: Padding(

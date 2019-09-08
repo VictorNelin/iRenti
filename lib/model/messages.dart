@@ -9,11 +9,11 @@ class Conversation {
   final List<UserData> users;
   final String startedById;
   final int startedOn;
-  final bool read;
+  final int lastReadTime;
   final List<CatalogEntry> data;
   final List<Message> messages;
 
-  const Conversation({this.id, this.userIds, this.startedById, this.startedOn, this.read, this.data, this.messages = const [], this.users});
+  const Conversation({this.id, this.userIds, this.startedById, this.startedOn, this.lastReadTime, this.data, this.messages = const [], this.users});
 
   factory Conversation.fromMap(String id, Map<String, dynamic> src) {
     return Conversation(
@@ -21,7 +21,7 @@ class Conversation {
       userIds: List.from(src['userIds']),
       startedById: src['startedById'],
       startedOn: src['startedOn'],
-      read: src['read'],
+      lastReadTime: src['lastReadTime'],
       data: List.from(src['data'].map((l) => CatalogEntry.fromMap(null, Map.from(l)))),
       messages: List.from(src['messages'].map((l) => Message.fromMap(Map.from(l)))),
     );
@@ -38,34 +38,34 @@ class Message {
   final UserData from;
   final String chatId;
   final String text;
+  final int data;
   final int timestamp;
-  final bool read;
 
   const Message({
     @required this.fromId,
     @required this.chatId,
-    @required this.text,
     @required this.timestamp,
+    this.text,
+    this.data,
     this.from,
-    this.read = false,
   });
 
   factory Message.fromMap(Map<String, dynamic> src) {
     return Message(
       fromId: src['fromId'],
       chatId: src['chatId'],
-      text: src['text'],
       timestamp: src['timestamp'],
-      read: src['read'] ?? false,
+      text: src['text'],
+      data: src['data'],
     );
   }
 
   Map<String, dynamic> toJSON() => {
     'fromId': fromId,
     'chatId': chatId,
-    'text': text,
     'timestamp': timestamp,
-    'read': read,
+    'text': text,
+    'data': data,
   };
 
   bool out(String selfId) => fromId == selfId;

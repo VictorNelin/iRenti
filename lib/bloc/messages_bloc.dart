@@ -63,6 +63,8 @@ class MessagesBloc extends Bloc<MessagesEvent, MessagesState> {
           _allSub?.cancel();
           _allSub = null;
         });
+      } else if (event is MessagesReadEvent) {
+        _messagesRepository.readChat(event.chatId);
       }
     } on Error catch (e) {
       print(e);
@@ -118,7 +120,7 @@ class MessagesLoadedState extends MessagesState {
 
   MessagesLoadedState(this.uid, this.entries) : super(<dynamic>[uid, ...entries]);
 
-  int get unreadCount => entries.fold(0, (i, c) => c.messages.any((m) => !m.out(uid) && !m.read) ? i + 1 : i);
+  int get unreadCount => entries.fold(0, (i, c) => c.messages.any((m) => !m.out(uid) && m.timestamp < c.lastReadTime) ? i + 1 : i);
 
   @override
   String toString() => 'LoadedState { entries: $entries }';
@@ -164,4 +166,11 @@ class MessagesCreateEvent extends MessagesEvent {
   final Conversation chat;
 
   MessagesCreateEvent(this.chat) : super([chat]);
+}
+
+@immutable
+class MessagesReadEvent extends MessagesEvent {
+  final String chatId;
+
+  MessagesReadEvent(this.chatId) : super([chatId]);
 }
