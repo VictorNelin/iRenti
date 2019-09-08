@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:bloc/bloc.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:showcaseview/showcaseview.dart';
 import 'package:irenti/bloc/auth_bloc.dart';
 import 'package:irenti/bloc/messages_bloc.dart';
 import 'package:irenti/repository/catalog_repository.dart';
@@ -66,6 +67,11 @@ class _AppState extends State<App> {
         title: 'iRenti',
         theme: buildTheme(Brightness.light),
         darkTheme: buildTheme(Brightness.dark),
+        builder: (context, child) {
+          return ShowCaseWidget(
+            child: child,
+          );
+        },
         home: BlocBuilder(
           bloc: _authenticationBloc,
           builder: (context, state) {

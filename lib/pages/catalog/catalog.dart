@@ -4,11 +4,15 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flushbar/flushbar.dart';
+import 'package:showcaseview/showcaseview.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:irenti/bloc/auth_bloc.dart';
 import 'package:irenti/bloc/catalog_bloc.dart';
 import 'package:irenti/bloc/messages_bloc.dart';
 import 'package:irenti/repository/catalog_repository.dart';
 import 'package:irenti/widgets/checkbox.dart';
+
+const GlobalKey _one = GlobalObjectKey('name');
 
 class CatalogPage extends StatefulWidget {
   final CatalogRepository _catalogRepository;
@@ -38,6 +42,7 @@ class _CatalogPageState extends State<CatalogPage> with SingleTickerProviderStat
   OverlayEntry _dialogOverlay;
   LocalHistoryEntry _selection;
   bool _creating = false;
+  bool _addKey = true;
 
   CatalogRepository get _catalogRepository => widget._catalogRepository;
 
@@ -65,6 +70,12 @@ class _CatalogPageState extends State<CatalogPage> with SingleTickerProviderStat
         }
       });
     }
+    SharedPreferences.getInstance().then((prefs) {
+      if (prefs.getBool('firstRunDone') != true) {
+        prefs.setBool('firstRunDone', true);
+        ShowCaseWidget.startShowCase(context, [_one]);
+      }
+    });
   }
 
   @override
@@ -367,11 +378,59 @@ class _CatalogPageState extends State<CatalogPage> with SingleTickerProviderStat
                                               onTap: () {
                                                 Navigator.pushNamed(context, '/catalog/profile', arguments: user);
                                               },
-                                              child: Text(
-                                                user.displayName,
-                                                style: Theme.of(context).textTheme.body1.copyWith(
-                                                  color: Colors.white,
-                                                ),
+                                              child: Builder(
+                                                builder: (ctx) {
+                                                  bool addKey = e.neighbors.indexOf(user) == 0;
+                                                  GlobalKey key;
+                                                  if (_addKey && addKey) {
+                                                    key = _one;
+                                                    _addKey = false;
+                                                  }
+                                                  Widget w = Text(
+                                                    user.displayName,
+                                                    style: Theme.of(context).textTheme.body1.copyWith(
+                                                      color: Colors.white,
+                                                    ),
+                                                  );
+                                                  return key == null ? w : Showcase.withWidget(
+                                                    key: key,
+                                                    title: 'Профиль',
+                                                    description: 'Чтобы посмотреть информацию\nо пользователе, нажмите на его имя',
+                                                    showcaseBackgroundColor: const Color(0xffef5353),
+                                                    textColor: Colors.white,
+                                                    container: Padding(
+                                                      padding: const EdgeInsets.only(bottom: 24.0),
+                                                      child: Material(
+                                                        color: const Color(0xffef5353),
+                                                        elevation: 6,
+                                                        shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(8))),
+                                                        child: Padding(
+                                                          padding: const EdgeInsets.all(16),
+                                                          child: Column(
+                                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                                            children: <Widget>[
+                                                              Text(
+                                                                'Профиль',
+                                                                style: Theme.of(context).textTheme.title
+                                                                        .merge(TextStyle(color: Colors.white)),
+                                                              ),
+                                                              const SizedBox(height: 8),
+                                                              Text(
+                                                                'Чтобы посмотреть информацию\nо пользователе, нажмите на его имя',
+                                                                style: Theme.of(context).textTheme.subtitle
+                                                                        .merge(TextStyle(color: Colors.white)),
+                                                              ),
+                                                            ],
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                    width: MediaQuery.of(context).size.width,
+                                                    height: 72,
+                                                    animationDuration: const Duration(seconds: 10),
+                                                    child: w,
+                                                  );
+                                                },
                                               ),
                                             ),
                                           ],
