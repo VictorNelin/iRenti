@@ -9,12 +9,7 @@ import 'package:irenti/repository/user_repository.dart';
 import 'package:irenti/utils/validators.dart';
 
 class LoginPage extends StatefulWidget {
-  final UserRepository _userRepository;
-
-  LoginPage({Key key, @required UserRepository userRepository})
-      : assert(userRepository != null),
-        _userRepository = userRepository,
-        super(key: key);
+  const LoginPage({Key key}) : super(key: key);
 
   @override
   _LoginPageState createState() => _LoginPageState();
@@ -29,12 +24,12 @@ class _LoginPageState extends State<LoginPage> {
   String _loginError;
   String _passwordError;
 
-  UserRepository get _userRepository => widget._userRepository;
+  UserRepository get _userRepository => RepositoryProvider.of<UserRepository>(context);
 
   @override
   void initState() {
     super.initState();
-    _loginBloc = LoginBloc(userRepository: widget._userRepository);
+    _loginBloc = LoginBloc(userRepository: _userRepository);
     _loginSub = _loginBloc.state.listen((state) {
       if (state.isSuccess) {
         BlocProvider.of<AuthenticationBloc>(context).dispatch(LoggedIn());

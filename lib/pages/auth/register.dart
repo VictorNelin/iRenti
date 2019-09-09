@@ -9,12 +9,7 @@ import 'package:irenti/widgets/checkbox.dart';
 import 'package:irenti/utils/validators.dart';
 
 class RegisterPage extends StatefulWidget {
-  final UserRepository _userRepository;
-
-  RegisterPage({Key key, @required UserRepository userRepository})
-      : assert(userRepository != null),
-        _userRepository = userRepository,
-        super(key: key);
+  const RegisterPage({Key key}) : super(key: key);
 
   @override
   _RegisterPageState createState() => _RegisterPageState();
@@ -32,12 +27,14 @@ class _RegisterPageState extends State<RegisterPage> with SingleTickerProviderSt
   String _password;
   bool _agreed = false;
 
+  UserRepository get _userRepository => RepositoryProvider.of<UserRepository>(context);
+
   @override
   void initState() {
     super.initState();
     _tabs = TabController(length: 3, vsync: this);
     _registerBloc = RegisterBloc(
-      userRepository: widget._userRepository,
+      userRepository: _userRepository,
     );
     _stateSub = _registerBloc.state.listen((state) {
       if (state.isAwaitingCode) {

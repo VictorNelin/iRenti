@@ -42,7 +42,7 @@ String fmtStr(double val) {
 class CatalogFilterPage extends StatefulWidget {
   final CatalogBloc bloc;
 
-  CatalogFilterPage({Key key, this.bloc}) : super(key: key);
+  const CatalogFilterPage({Key key, this.bloc}) : super(key: key);
 
   @override
   _CatalogFilterPageState createState() => _CatalogFilterPageState();

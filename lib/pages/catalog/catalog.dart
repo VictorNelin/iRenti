@@ -15,16 +15,12 @@ import 'package:irenti/widgets/checkbox.dart';
 const GlobalKey _one = GlobalObjectKey('name');
 
 class CatalogPage extends StatefulWidget {
-  final CatalogRepository _catalogRepository;
   final bool favorites;
 
   const CatalogPage({
     Key key,
-    @required CatalogRepository catalogRepository,
     this.favorites: false,
-  }) :  assert(catalogRepository != null),
-        _catalogRepository = catalogRepository,
-        assert(favorites != null),
+  }) :  assert(favorites != null),
         super(key: key);
 
   @override
@@ -44,7 +40,7 @@ class _CatalogPageState extends State<CatalogPage> with SingleTickerProviderStat
   bool _creating = false;
   bool _addKey = true;
 
-  CatalogRepository get _catalogRepository => widget._catalogRepository;
+  CatalogRepository get _catalogRepository => RepositoryProvider.of<CatalogRepository>(context);
 
   @override
   void initState() {
@@ -394,10 +390,6 @@ class _CatalogPageState extends State<CatalogPage> with SingleTickerProviderStat
                                                   );
                                                   return key == null ? w : Showcase.withWidget(
                                                     key: key,
-                                                    title: 'Профиль',
-                                                    description: 'Чтобы посмотреть информацию\nо пользователе, нажмите на его имя',
-                                                    showcaseBackgroundColor: const Color(0xffef5353),
-                                                    textColor: Colors.white,
                                                     container: Padding(
                                                       padding: const EdgeInsets.only(bottom: 24.0),
                                                       child: Material(
@@ -466,7 +458,7 @@ class _CatalogPageState extends State<CatalogPage> with SingleTickerProviderStat
                                   backgroundColor: Colors.white,
                                   mini: true,
                                   heroTag: null,
-                                  onPressed: () {},
+                                  onPressed: () => Navigator.of(context).pushNamed('/catalog/map', arguments: e),
                                 ),
                                 StatefulBuilder(
                                     builder: (ctx, setBtnState) {

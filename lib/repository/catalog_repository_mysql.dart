@@ -93,6 +93,16 @@ class CatalogRepository {
     return [q.single['min(price)'].toDouble(),q.single['max(price)'].toDouble()];
   }
 
+  Future<List<CatalogEntry>> findNearby(double left, double top, double right, double bottom) async {
+    _db ??= await MySqlConnection.connect(_kDbSettings);
+    String query = '''select * from datapars where ST_Contains(GeomFromText('POLYGON(($left $top,$right $top,$right $bottom,$left $bottom,$left $top))'), Point(cast(substring_index(substring_index(geodata, ',', 2), ',', -1) as decimal(12, 10)), cast(substring_index(substring_index(geodata, ',', 1), ',', -1) as decimal(12, 10))))''';
+    Results q = await _db.query(query);
+    return [
+      for (Row row in q)
+        CatalogEntry.fromMap(row['id'].toString(), row.fields),
+    ];
+  }
+
   Future<CatalogEntry> _loaded(CatalogEntry on, Firestore firestore, String uid, List<dynamic> profile) async {
     var snaps = (await _firestore.collection('users').where('fave', arrayContains: on.id).getDocuments()).documents;
     List<UserData> users = [

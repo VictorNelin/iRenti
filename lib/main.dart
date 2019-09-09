@@ -17,6 +17,7 @@ import 'pages/catalog/catalog.dart';
 import 'pages/catalog/catalog_filter.dart';
 import 'pages/catalog/catalog_filter_metro.dart';
 import 'pages/catalog/catalog_info.dart';
+import 'pages/catalog/map.dart';
 import 'pages/messages/dialogs.dart';
 import 'pages/messages/single_dialog.dart';
 import 'pages/profile/profile.dart';
@@ -58,143 +59,154 @@ class _AppState extends State<App> {
 
   @override
   Widget build(BuildContext context) {
-    return MultiBlocProvider(
+    return MultiRepositoryProvider(
       providers: [
-        BlocProvider<AuthenticationBloc>(builder: (_) => _authenticationBloc),
-        BlocProvider<MessagesBloc>(builder: (_) => _messagesBloc),
+        RepositoryProvider<UserRepository>.value(value: _userRepository),
+        RepositoryProvider<MessagesRepository>.value(value: _messagesRepository),
+        RepositoryProvider<CatalogRepository>.value(value: _catalogRepository),
       ],
-      child: MaterialApp(
-        title: 'iRenti',
-        theme: buildTheme(Brightness.light),
-        darkTheme: buildTheme(Brightness.dark),
-        builder: (context, child) {
-          return ShowCaseWidget(
-            child: child,
-          );
-        },
-        home: BlocBuilder(
-          bloc: _authenticationBloc,
-          builder: (context, state) {
-            if (state is Unauthenticated) {
-              return WelcomePage();
-            }
-            if (state is Authenticated) {
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                _messagesBloc.dispatch(MessagesInitEvent(state.user.uid));
-                Navigator.pushReplacementNamed(context, '/main');
-              });
-            }
-            return Material(child: SizedBox.expand());
+      child: MultiBlocProvider(
+        providers: [
+          BlocProvider<AuthenticationBloc>(builder: (_) => _authenticationBloc),
+          BlocProvider<MessagesBloc>(builder: (_) => _messagesBloc),
+        ],
+        child: MaterialApp(
+          title: 'iRenti',
+          theme: buildTheme(Brightness.light),
+          darkTheme: buildTheme(Brightness.dark),
+          builder: (context, child) {
+            return ShowCaseWidget(
+              child: child,
+            );
           },
-        ),
-        routes: {
-          '/login': (ctx) => LoginPage(userRepository: _userRepository),
-          '/register': (ctx) => RegisterPage(userRepository: _userRepository),
-          '/profile': (ctx) => ProfilePage(),
-          '/catalog': (ctx) => CatalogPage(catalogRepository: _catalogRepository),
-        },
-        onGenerateRoute: (settings) {
-          if (settings.name == '/main') {
-            return CupertinoPageRoute(
-              builder: (ctx) => CupertinoTabScaffold(
-                tabBar: CupertinoTabBar(
-                  currentIndex: settings.arguments ?? 0,
-                  backgroundColor: const Color(0xff272d30),
-                  activeColor: const Color(0x80ffffff),
-                  inactiveColor: const Color(0xffffffff),
-                  items: [
-                    const BottomNavigationBarItem(icon: Icon(Icons.home)),
-                    const BottomNavigationBarItem(icon: Icon(Icons.star)),
-                    BottomNavigationBarItem(
-                      icon: Stack(
-                        overflow: Overflow.visible,
-                        children: <Widget>[
-                          const Icon(Icons.message),
-                          BlocBuilder(
-                            bloc: _messagesBloc,
-                            builder: (ctx, state) {
-                              if (state is MessagesLoadedState) {
-                                return Positioned(
-                                  top: -4,
-                                  right: -4,
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: const Color(0xFFEF5353),
-                                    ),
-                                    alignment: Alignment.center,
-                                    width: 16,
-                                    height: 16,
-                                    child: Text(
-                                      state.unreadCount.toString(),
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.w600,
-                                        color: Colors.white,
+          home: BlocBuilder(
+            bloc: _authenticationBloc,
+            builder: (context, state) {
+              if (state is Unauthenticated) {
+                return WelcomePage();
+              }
+              if (state is Authenticated) {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  _messagesBloc.dispatch(MessagesInitEvent(state.user.uid));
+                  Navigator.pushReplacementNamed(context, '/main');
+                });
+              }
+              return Material(child: SizedBox.expand());
+            },
+          ),
+          routes: {
+            '/login': (ctx) => const LoginPage(),
+            '/register': (ctx) => const RegisterPage(),
+            '/profile': (ctx) => const ProfilePage(),
+            '/catalog': (ctx) => const CatalogPage(),
+          },
+          onGenerateRoute: (settings) {
+            if (settings.name == '/main') {
+              return CupertinoPageRoute(
+                builder: (ctx) => CupertinoTabScaffold(
+                  tabBar: CupertinoTabBar(
+                    currentIndex: settings.arguments ?? 0,
+                    backgroundColor: const Color(0xff272d30),
+                    activeColor: const Color(0x80ffffff),
+                    inactiveColor: const Color(0xffffffff),
+                    items: [
+                      const BottomNavigationBarItem(icon: Icon(Icons.home)),
+                      const BottomNavigationBarItem(icon: Icon(Icons.star)),
+                      BottomNavigationBarItem(
+                        icon: Stack(
+                          overflow: Overflow.visible,
+                          children: <Widget>[
+                            const Icon(Icons.message),
+                            BlocBuilder(
+                              bloc: _messagesBloc,
+                              builder: (ctx, state) {
+                                if (state is MessagesLoadedState && state.unreadCount > 0) {
+                                  return Positioned(
+                                    top: -4,
+                                    right: -4,
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color: const Color(0xFFEF5353),
+                                      ),
+                                      alignment: Alignment.center,
+                                      width: 16,
+                                      height: 16,
+                                      child: Text(
+                                        state.unreadCount.toString(),
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.w600,
+                                          color: Colors.white,
+                                        ),
                                       ),
                                     ),
-                                  ),
-                                );
-                              }
-                              return const SizedBox.shrink();
-                            },
-                          ),
-                        ],
+                                  );
+                                }
+                                return const SizedBox.shrink();
+                              },
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                    const BottomNavigationBarItem(icon: Icon(Icons.person)),
-                  ],
+                      const BottomNavigationBarItem(icon: Icon(Icons.person)),
+                    ],
+                  ),
+                  tabBuilder: (ctx, i) {
+                    switch (i) {
+                      case 0:
+                        return const CatalogPage();
+                      case 1:
+                        return const CatalogPage(favorites: true);
+                      case 2:
+                        return const DialogsPage();
+                      case 3:
+                        return ProfilePage(firstRun: settings.arguments != null);
+                    }
+                    return Material(
+                      child: Center(
+                        child: Text('NYI', style: Theme.of(ctx).textTheme.display4),
+                      ),
+                    );
+                  },
                 ),
-                tabBuilder: (ctx, i) {
-                  switch (i) {
-                    case 0:
-                      return CatalogPage(catalogRepository: _catalogRepository);
-                    case 1:
-                      return CatalogPage(catalogRepository: _catalogRepository, favorites: true);
-                    case 2:
-                      return DialogsPage();
-                    case 3:
-                      return ProfilePage(firstRun: settings.arguments != null);
-                  }
-                  return Material(
-                    child: Center(
-                      child: Text('NYI', style: Theme.of(ctx).textTheme.display4),
-                    ),
-                  );
-                },
-              ),
-            );
-          } else if (settings.name == '/catalog/info') {
-            return CupertinoPageRoute(
-              builder: (ctx) => CatalogInfoPage(entry: settings.arguments),
-            );
-          } else if (settings.name == '/catalog/filter') {
-            return CupertinoPageRoute(
-              builder: (ctx) => CatalogFilterPage(bloc: settings.arguments),
-              fullscreenDialog: true,
-            );
-          } else if (settings.name == '/catalog/filter/metro') {
-            return DefCupertinoPageRoute(
-              builder: (ctx) => CatalogFilterMetroPage(initial: settings.arguments),
-              fullscreenDialog: true,
-              result: settings.arguments,
-            );
-          } else if (settings.name == '/catalog/profile') {
-            return CupertinoPageRoute(
-              builder: (ctx) => ProfilePage(user: settings.arguments),
-            );
-          } else if (settings.name == '/dialog') {
-            Map<String, dynamic> args = Map.from(settings.arguments);
-            return CupertinoPageRoute(
-              builder: (ctx) => DialogPage(
-                dialogId: args['id'],
-                title: args['title'],
-              ),
-            );
-          } else if (settings.name == '/settings') {
-            return CupertinoPageRoute(builder: (ctx) => const SettingsPage());
-          }
-          return CupertinoPageRoute(builder: (_) => const SizedBox());
-        },
+              );
+            } else if (settings.name == '/catalog/info') {
+              return CupertinoPageRoute(
+                builder: (ctx) => CatalogInfoPage(entry: settings.arguments),
+              );
+            } else if (settings.name == '/catalog/filter') {
+              return CupertinoPageRoute(
+                builder: (ctx) => CatalogFilterPage(bloc: settings.arguments),
+                fullscreenDialog: true,
+              );
+            } else if (settings.name == '/catalog/filter/metro') {
+              return DefCupertinoPageRoute(
+                builder: (ctx) => CatalogFilterMetroPage(initial: settings.arguments),
+                fullscreenDialog: true,
+                result: settings.arguments,
+              );
+            } else if (settings.name == '/catalog/profile') {
+              return CupertinoPageRoute(
+                builder: (ctx) => ProfilePage(user: settings.arguments),
+              );
+            } else if (settings.name == '/catalog/map') {
+              return CupertinoPageRoute(
+                builder: (ctx) => MapPage(entry: settings.arguments),
+              );
+            } else if (settings.name == '/dialog') {
+              Map<String, dynamic> args = Map.from(settings.arguments);
+              return CupertinoPageRoute(
+                builder: (ctx) => DialogPage(
+                  dialogId: args['id'],
+                  title: args['title'],
+                ),
+              );
+            } else if (settings.name == '/settings') {
+              return CupertinoPageRoute(builder: (ctx) => const SettingsPage());
+            }
+            return CupertinoPageRoute(builder: (_) => const SizedBox());
+          },
+        ),
       ),
     );
   }

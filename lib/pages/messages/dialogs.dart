@@ -6,6 +6,8 @@ import 'package:irenti/repository/messages_repository.dart';
 import 'package:irenti/widgets/title_bar.dart';
 
 class DialogsPage extends StatefulWidget {
+  const DialogsPage({Key key}) : super(key: key);
+
   @override
   _DialogsPageState createState() => _DialogsPageState();
 }
