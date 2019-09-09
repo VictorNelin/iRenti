@@ -1,18 +1,12 @@
-import 'dart:async';
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flushbar/flushbar.dart';
 import 'package:showcaseview/showcaseview.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:irenti/bloc/auth_bloc.dart';
 import 'package:irenti/bloc/catalog_bloc.dart';
-import 'package:irenti/bloc/messages_bloc.dart';
 import 'package:irenti/repository/catalog_repository.dart';
-import 'package:irenti/widgets/checkbox.dart';
-
-const GlobalKey _one = GlobalObjectKey('name');
+import 'package:irenti/widgets/catalog_cover.dart';
 
 class CatalogPage extends StatefulWidget {
   final bool favorites;
@@ -35,10 +29,10 @@ class _CatalogPageState extends State<CatalogPage> with SingleTickerProviderStat
   int _count = 0;
   bool _canFetch = false;
   String _selectedId;
-  OverlayEntry _dialogOverlay;
+  /*OverlayEntry _dialogOverlay;
   LocalHistoryEntry _selection;
   bool _creating = false;
-  bool _addKey = true;
+  bool _addKey = true;*/
 
   CatalogRepository get _catalogRepository => RepositoryProvider.of<CatalogRepository>(context);
 
@@ -69,7 +63,7 @@ class _CatalogPageState extends State<CatalogPage> with SingleTickerProviderStat
     SharedPreferences.getInstance().then((prefs) {
       if (prefs.getBool('firstRunDone') != true) {
         prefs.setBool('firstRunDone', true);
-        ShowCaseWidget.startShowCase(context, [_one]);
+        ShowCaseWidget.startShowCase(context, [keyOne]);
       }
     });
   }
@@ -80,7 +74,7 @@ class _CatalogPageState extends State<CatalogPage> with SingleTickerProviderStat
     super.dispose();
   }
 
-  void _selectId(UserData user, CatalogEntry entry) {
+  /*void _selectId(UserData user, CatalogEntry entry) {
     if (_selectedId == user.id || user == null) {
       _selection.remove();
       _selection = null;
@@ -182,7 +176,7 @@ class _CatalogPageState extends State<CatalogPage> with SingleTickerProviderStat
         _selectedId = user.id;
       });
     }
-  }
+  }*/
 
   @override
   Widget build(BuildContext context) {
@@ -221,7 +215,8 @@ class _CatalogPageState extends State<CatalogPage> with SingleTickerProviderStat
                 itemBuilder: (ctx, i) {
                   if (i >= _count) return null;
                   CatalogEntry e = state.entries[i];
-                  return SizedBox(
+                  return CatalogCover(uid: _uid, entry: e);
+                  /*return SizedBox(
                     key: ValueKey(i),
                     width: MediaQuery.of(context).size.width,
                     height: MediaQuery.of(context).size.height - 50,
@@ -501,7 +496,7 @@ class _CatalogPageState extends State<CatalogPage> with SingleTickerProviderStat
                         ],
                       ),
                     ),
-                  );
+                  );*/
                 },
               ),
               SafeArea(
