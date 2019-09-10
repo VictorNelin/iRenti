@@ -104,10 +104,14 @@ class _MapPageState extends State<MapPage> {
                               anchorPos: AnchorPos.align(AnchorAlign.top),
                               width: 48,
                               height: 48,
-                              builder: (ctx) => const Icon(
-                                CupertinoIcons.location_solid,
-                                size: 48,
-                                color: Color(0xff272d30),
+                              builder: (ctx) => GestureDetector(
+                                behavior: HitTestBehavior.opaque,
+                                onTap: () => Navigator.pushNamed(context, '/catalog/single', arguments: entry),
+                                child: const Icon(
+                                  CupertinoIcons.location_solid,
+                                  size: 48,
+                                  color: Color(0xff272d30),
+                                ),
                               ),
                             ),
                         Marker(

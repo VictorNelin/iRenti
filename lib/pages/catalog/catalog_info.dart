@@ -22,7 +22,7 @@ class CatalogInfoPage extends StatelessWidget {
           alignment: PlaceholderAlignment.middle,
           child: Container(
             width: 14,
-            padding: const EdgeInsets.only(right: 4.0),
+            padding: const EdgeInsets.only(right: 4),
             child: DecoratedBox(
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
@@ -51,45 +51,43 @@ class CatalogInfoPage extends StatelessWidget {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: <Widget>[
-                  const SizedBox(width: 16.0, height: kToolbarHeight),
-                  const Icon(Icons.arrow_back_ios, size: 16.0),
-                  const SizedBox(width: 16.0),
+                  const SizedBox(width: 16, height: kToolbarHeight),
+                  const Icon(Icons.arrow_back_ios, size: 16),
+                  const SizedBox(width: 16),
                   Align(child: Text(
                     'Назад',
-                    style: Theme.of(context).textTheme.subhead.copyWith(
-                      fontSize: 14.0,
-                    ),
+                    style: Theme.of(context).textTheme.subhead.copyWith(fontSize: 14),
                   )),
-                  const SizedBox(width: 16.0),
+                  const SizedBox(width: 16),
                 ],
               ),
             ),
           ),
           const SizedBox(height: 8),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20.0),
+            padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Text(
               entry.titleFormatted,
               style: Theme.of(context).textTheme.headline,
             ),
           ),
-          const SizedBox(height: 16.0),
+          const SizedBox(height: 16),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20.0),
+            padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Text(
               '${entry.costFormatted} руб./месяц',
               style: Theme.of(context).textTheme.title,
             ),
           ),
-          const SizedBox(height: 16.0),
+          const SizedBox(height: 16),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20.0),
+            padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Text(
               entry.address,
               style: Theme.of(context).textTheme.body1,
             ),
           ),
-          const SizedBox(height: 20.0),
+          const SizedBox(height: 20),
           if (entry.undergrounds != null)
             ListEntry(title: 'Метро', child: _buildMetroText(Theme.of(context).textTheme.body1)),
           ListEntry(title: 'Тип', child: Text('Квартира')),

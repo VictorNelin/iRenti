@@ -60,7 +60,7 @@ class _DialogsPageState extends State<DialogsPage> {
                               width: 20,
                               alignment: Alignment.center,
                               child: Offstage(
-                                offstage: entry.messages.isEmpty ? true : entry.messages.where((m) => m.fromId != _uid).every((m) => m.timestamp < entry.lastReadTime),
+                                offstage: entry.messages.isEmpty ? true : entry.messages.every((m) => m.timestamp >= entry.lastReadTime),
                                 child: Container(
                                   width: 4,
                                   height: 4,

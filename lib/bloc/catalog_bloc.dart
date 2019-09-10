@@ -45,7 +45,7 @@ class CatalogBloc extends Bloc<CatalogEvent, CatalogState> {
           uid: userId,
           profile: event.profile,
           ids: event.ids,
-          offset: state is LoadedState && event.ids == null ? state.entries.length : 0,
+          offset: state is LoadedState && event.ids == null && !event.reload ? state.entries.length : 0,
           count: _kCount,
           roomCol: _rooms,
           priceLow: _priceLow,
@@ -53,7 +53,7 @@ class CatalogBloc extends Bloc<CatalogEvent, CatalogState> {
         );
         _profile = event.profile;
         yield LoadedState(
-          state is LoadedState && event.ids == null ? state.entries + data : data,
+          state is LoadedState && event.ids == null && !event.reload ? state.entries + data : data,
           event.ids != null || data.length == _kCount,
         );
       } else if (event is CatalogReload) {
@@ -150,8 +150,9 @@ class CatalogEvent {}
 class CatalogFetch extends CatalogEvent {
   final List<dynamic> profile;
   final List<String> ids;
+  final bool reload;
 
-  CatalogFetch({this.profile, this.ids});
+  CatalogFetch({this.profile, this.ids, this.reload = false});
 }
 
 @immutable

@@ -17,6 +17,7 @@ import 'pages/catalog/catalog.dart';
 import 'pages/catalog/catalog_filter.dart';
 import 'pages/catalog/catalog_filter_metro.dart';
 import 'pages/catalog/catalog_info.dart';
+import 'pages/catalog/catalog_single.dart';
 import 'pages/catalog/map.dart';
 import 'pages/messages/dialogs.dart';
 import 'pages/messages/single_dialog.dart';
@@ -193,6 +194,10 @@ class _AppState extends State<App> {
               return CupertinoPageRoute(
                 builder: (ctx) => MapPage(entry: settings.arguments),
               );
+            } else if (settings.name == '/catalog/single') {
+              return CupertinoPageRoute(
+                builder: (ctx) => CatalogSinglePage(entry: settings.arguments),
+              );
             } else if (settings.name == '/dialog') {
               Map<String, dynamic> args = Map.from(settings.arguments);
               return CupertinoPageRoute(
@@ -236,6 +241,8 @@ ThemeData buildTheme(Brightness brightness) {
     backgroundColor: dark ? const Color(0xFF181818) : const Color(0xFFE7E7E7),
     canvasColor: dark ? Colors.black : null,
     cardColor: dark ? const Color(0xff272d30) : null,
+    disabledColor: const Color(0xFFEF5353),
+    unselectedWidgetColor: const Color(0xFFEF5353),
     typography: Typography(platform: TargetPlatform.iOS).copyWith(
       englishLike: Typography.englishLike2014.copyWith(
         headline: Typography.englishLike2014.headline.copyWith(

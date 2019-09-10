@@ -27,6 +27,15 @@ class CatalogRepository {
   CatalogRepository({MySqlConnection db, Firestore firestore})
       : _db = db, _firestore = firestore ?? Firestore.instance;
 
+  Future<Results> _query(String query) async {
+    _db ??= await MySqlConnection.connect(_kDbSettings);
+    return _db.query(query).then((v) => v, onError: (_) async {
+      await _db.close();
+      _db ??= await MySqlConnection.connect(_kDbSettings);
+      return _db.query(query);
+    });
+  }
+
   Future<List<CatalogEntry>> fetchData({
     String uid,
     List<dynamic> profile,
@@ -38,7 +47,6 @@ class CatalogRepository {
     double priceHigh,
     List<String> metro,
   }) async {
-    _db ??= await MySqlConnection.connect(_kDbSettings);
     List<String> filters = [
       if (ids != null)
         '(id in (${ids.isEmpty ? '-1' : ids.join(',')})) ',
@@ -54,13 +62,7 @@ class CatalogRepository {
         '$query'
         'order by id asc'
         '${ids == null ? ' limit ${offset ?? 0},$count' : ''};';
-    Results q;
-    try {
-      q = await _db.query(query);
-    } catch (e) {
-      _db = await MySqlConnection.connect(_kDbSettings);
-      q = await _db.query(query);
-    }
+    Results q = await _query(query);
     if (q == null) {
       return <CatalogEntry>[];
     }
@@ -68,11 +70,10 @@ class CatalogRepository {
       for (Row row in q)
         CatalogEntry.fromMap(row['id'].toString(), row.fields),
     ];
-    return await Future.wait(entries.map((entry) => _loaded(entry, _firestore, uid, profile)));
+    return await Future.wait(entries.map((entry) => _loaded(entry, uid, profile)));
   }
 
   Future<int> countWith({int roomCol, double priceLow, double priceHigh, List<String> metro}) async {
-    _db ??= await MySqlConnection.connect(_kDbSettings);
     List<String> filters = [
       if (roomCol != null && roomCol >= 0)
         _roomColExpr(roomCol),
@@ -83,27 +84,27 @@ class CatalogRepository {
     ];
     String query = filters.isEmpty ? '' : ' where ${filters.join('and ')}';
     query = 'select count(id) from datapars$query';
-    Results q = await _db.query(query);
+    Results q = await _query(query);
     return q.single['count(id)'];
   }
 
   Future<List<double>> getMinMax() async {
-    _db ??= await MySqlConnection.connect(_kDbSettings);
-    Results q = await _db.query('select min(price),max(price) from datapars');
+    Results q = await _query('select min(price),max(price) from datapars');
     return [q.single['min(price)'].toDouble(),q.single['max(price)'].toDouble()];
   }
 
   Future<List<CatalogEntry>> findNearby(double left, double top, double right, double bottom) async {
-    _db ??= await MySqlConnection.connect(_kDbSettings);
     String query = '''select * from datapars where ST_Contains(GeomFromText('POLYGON(($left $top,$right $top,$right $bottom,$left $bottom,$left $top))'), Point(cast(substring_index(substring_index(geodata, ',', 2), ',', -1) as decimal(12, 10)), cast(substring_index(substring_index(geodata, ',', 1), ',', -1) as decimal(12, 10))))''';
-    Results q = await _db.query(query);
+    Results q = await _query(query);
     return [
       for (Row row in q)
         CatalogEntry.fromMap(row['id'].toString(), row.fields),
     ];
   }
 
-  Future<CatalogEntry> _loaded(CatalogEntry on, Firestore firestore, String uid, List<dynamic> profile) async {
+  Future<CatalogEntry> loadFull(CatalogEntry on, String uid, List<dynamic> profile) => _loaded(on, uid, profile);
+
+  Future<CatalogEntry> _loaded(CatalogEntry on, String uid, List<dynamic> profile) async {
     var snaps = (await _firestore.collection('users').where('fave', arrayContains: on.id).getDocuments()).documents;
     List<UserData> users = [
       for (DocumentSnapshot doc in snaps.where((s) => s.documentID != uid))

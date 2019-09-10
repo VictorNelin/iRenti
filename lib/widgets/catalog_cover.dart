@@ -14,17 +14,29 @@ import 'package:irenti/widgets/checkbox.dart';
 const GlobalKey keyOne = GlobalObjectKey('name');
 bool _addKey = true;
 
-class CatalogCover extends StatelessWidget {
+class CatalogCover extends StatefulWidget {
+  CatalogCover({Key key, this.uid, this.entry, this.single = false}) : super(key: key);
+
+  final String uid;
+  final CatalogEntry entry;
+  final bool single;
+
+  @override
+  _CatalogCoverState createState() => _CatalogCoverState();
+}
+
+class _CatalogCoverState extends State<CatalogCover> {
   final ValueNotifier<String> _selectedId = ValueNotifier(null);
   final ValueNotifier<OverlayEntry> _dialogOverlay = ValueNotifier(null);
   final ValueNotifier<LocalHistoryEntry> _selection = ValueNotifier(null);
 
-  CatalogCover({Key key, this.uid, this.entry}) : super(key: key);
+  void _removeOnScroll() {
+    _selectedId.value = null;
+    _selection.value?.remove();
+    _selection.value = null;
+  }
 
-  final String uid;
-  final CatalogEntry entry;
-
-  void _selectId(BuildContext context, UserData user, CatalogEntry entry) {
+  void _selectId(UserData user, CatalogEntry entry) {
     if (_selectedId.value == user.id || user == null) {
       _selection.value.remove();
       _selection.value = null;
@@ -42,7 +54,7 @@ class CatalogCover extends StatelessWidget {
               onTap: _creating ? null : () async {
                 _creating = true;
                 _dialogOverlay.value.markNeedsBuild();
-                await BlocProvider.of<MessagesBloc>(context).createChat(uid, user.id, entry.toMap());
+                await BlocProvider.of<MessagesBloc>(context).createChat(widget.uid, user.id, entry.toMap());
                 _creating = false;
                 _dialogOverlay.value.remove();
                 _dialogOverlay.value = null;
@@ -120,6 +132,7 @@ class CatalogCover extends StatelessWidget {
           _selectedId.value = null;
         });
       }
+      PrimaryScrollController.of(context)?.addListener(_removeOnScroll);
       ModalRoute.of(context).addLocalHistoryEntry(_selection.value);
       _selectedId.value = user.id;
     }
@@ -129,15 +142,15 @@ class CatalogCover extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox(
       width: MediaQuery.of(context).size.width,
-      height: MediaQuery.of(context).size.height - 50,
+      height: MediaQuery.of(context).size.height - (widget.single ? 0 : 50),
       child: DefaultTabController(
-        length: entry.photos.length,
+        length: widget.entry.photos.length,
         child: Stack(
           alignment: Alignment.centerRight,
           children: <Widget>[
             TabBarView(
               children: <Widget>[
-                for (String s in entry.photos)
+                for (String s in widget.entry.photos)
                   Image.network(
                     s,
                     fit: BoxFit.cover,
@@ -147,209 +160,228 @@ class CatalogCover extends StatelessWidget {
                   ),
               ],
             ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: <Widget>[
-                const SizedBox(height: kToolbarHeight + 32.0),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                  child: Text(
-                    entry.titleFormatted,
-                    style: Theme.of(context).textTheme.headline.copyWith(
-                      color: const Color(0xFFFFFFFF),
+            SafeArea(
+              bottom: false,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: <Widget>[
+                  const SizedBox(height: kToolbarHeight),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: Text(
+                      widget.entry.titleFormatted,
+                      style: Theme.of(context).textTheme.headline.copyWith(
+                        color: const Color(0xFFFFFFFF),
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(height: 16.0),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                  child: Text(
-                    '${entry.costFormatted} руб./месяц',
-                    style: Theme.of(context).textTheme.title.copyWith(
-                      color: const Color(0xFFFFFFFF),
+                  const SizedBox(height: 16.0),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: Text(
+                      '${widget.entry.costFormatted} руб./месяц',
+                      style: Theme.of(context).textTheme.title.copyWith(
+                        color: const Color(0xFFFFFFFF),
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(height: 16.0),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                  child: Text(
-                    entry.address,
-                    style: Theme.of(context).textTheme.body1.copyWith(
-                      color: const Color(0xFFFFFFFF),
+                  const SizedBox(height: 16.0),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    child: Text(
+                      widget.entry.address,
+                      style: Theme.of(context).textTheme.body1.copyWith(
+                        color: const Color(0xFFFFFFFF),
+                      ),
                     ),
                   ),
-                ),
-                const Expanded(child: SizedBox()),
-                Builder(builder: (ctx) {
-                  return Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: List.generate(entry.photos.length.clamp(0, 20), (i) {
-                      TabController _tabs = DefaultTabController.of(ctx);
-                      return AnimatedBuilder(
-                        animation: _tabs.animation,
-                        builder: (ctx, child) {
-                          double value = 1.0 - (_tabs.animation.value - i).abs().clamp(0.0, 1.0);
-                          return Container(
-                            width: 10.0,
-                            height: 10.0,
-                            margin: EdgeInsets.symmetric(horizontal: 2.5),
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              border: Border.all(color: Colors.white, width: 2.0 + 3.0 * value),
-                              color: Color.lerp(
-                                Colors.transparent,
-                                Colors.white,
-                                value,
+                  const Expanded(child: SizedBox()),
+                  Builder(builder: (ctx) {
+                    return Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: List.generate(widget.entry.photos.length.clamp(0, 20), (i) {
+                        TabController _tabs = DefaultTabController.of(ctx);
+                        return AnimatedBuilder(
+                          animation: _tabs.animation,
+                          builder: (ctx, child) {
+                            double value = 1.0 - (_tabs.animation.value - i).abs().clamp(0.0, 1.0);
+                            return Container(
+                              width: 10.0,
+                              height: 10.0,
+                              margin: EdgeInsets.symmetric(horizontal: 2.5),
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                border: Border.all(color: Colors.white, width: 2.0 + 3.0 * value),
+                                color: Color.lerp(
+                                  Colors.transparent,
+                                  Colors.white,
+                                  value,
+                                ),
                               ),
-                            ),
-                          );
-                        },
-                      );
-                    }),
-                  );
-                }),
-                const SizedBox(height: 16.0),
-                const Divider(height: 0.0),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
-                  child: Text(
-                    'Начните чат с возможными соседями',
-                    style: Theme.of(context).textTheme.body1.copyWith(
-                      color: Colors.white,
+                            );
+                          },
+                        );
+                      }),
+                    );
+                  }),
+                  const SizedBox(height: 16.0),
+                  if (widget.entry.neighbors != null && widget.entry.neighbors.isNotEmpty)
+                    const Divider(height: 0.0),
+                  if (widget.entry.neighbors != null && widget.entry.neighbors.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
+                      child: Text(
+                        'Начните чат с возможными соседями',
+                        style: Theme.of(context).textTheme.body1.copyWith(
+                          color: Colors.white,
+                        ),
+                      ),
                     ),
-                  ),
-                ),
-                Container(
-                  height: 80.0,
-                  child: ListView(
-                    scrollDirection: Axis.horizontal,
-                    children: [
-                      for (UserData user in entry.neighbors)
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: <Widget>[
-                              SizedBox(
-                                height: 50,
-                                child: GestureDetector(
-                                  onTap: () {
-                                    _selectId(context, user, entry);
-                                  },
-                                  child: Stack(
-                                    alignment: Alignment.center,
-                                    fit: StackFit.loose,
-                                    children: <Widget>[
-                                      SizedBox(width: 50, height: 50),
-                                      ValueListenableBuilder<String>(
-                                        valueListenable: _selectedId,
-                                        builder: (context, data, child) {
-                                          return CircleAvatar(
-                                            radius: data == user.id ? 20 : 25,
-                                            backgroundImage: user.photoUrl != null ? NetworkImage(user.photoUrl) : null,
-                                            child: child,
-                                          );
-                                        },
-                                        child: ClipOval(
-                                          child: Padding(
-                                            padding: const EdgeInsets.only(top: 10),
-                                            child: user.photoUrl == null ? const Icon(Icons.person, size: 48) : null,
-                                          ),
-                                        ),
-                                      ),
-                                      Positioned(
-                                        top: 0,
-                                        right: 0,
-                                        child: ValueListenableBuilder<String>(
-                                          valueListenable: _selectedId,
-                                          builder: (context, data, child) {
-                                            return AnimatedOpacity(
-                                              opacity: _selectedId.value == user.id ? 1.0 : 0.0,
-                                              duration: kThemeChangeDuration,
-                                              child: child,
-                                            );
-                                          },
-                                          child: IgnorePointer(
-                                            child: Material(
-                                              type: MaterialType.transparency,
-                                              child: RoundCheckbox(
-                                                value: true,
-                                                size: 20,
+                  if (widget.entry.neighbors != null && widget.entry.neighbors.isNotEmpty)
+                    Container(
+                      height: 80.0,
+                      child: ListView(
+                        scrollDirection: Axis.horizontal,
+                        children: [
+                          for (UserData user in widget.entry.neighbors)
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: <Widget>[
+                                  SizedBox(
+                                    height: 50,
+                                    child: GestureDetector(
+                                      onTap: () {
+                                        _selectId(user, widget.entry);
+                                      },
+                                      child: Stack(
+                                        alignment: Alignment.center,
+                                        fit: StackFit.loose,
+                                        children: <Widget>[
+                                          SizedBox(width: 50, height: 50),
+                                          ValueListenableBuilder<String>(
+                                            valueListenable: _selectedId,
+                                            builder: (context, data, child) {
+                                              double scale = data == user.id ? 0.8 : 1;
+                                              double padding = data == user.id ? 5 : 0;
+                                              return AnimatedPositioned(
+                                                duration: kThemeChangeDuration,
+                                                left: padding,
+                                                top: padding,
+                                                height: 50,
+                                                child: AnimatedContainer(
+                                                  duration: kThemeChangeDuration,
+                                                  transform: Matrix4.diagonal3Values(scale, scale, 1.0),
+                                                  child: child,
+                                                ),
+                                              );
+                                            },
+                                            child: ClipOval(
+                                              child: Container(
+                                                color: const Color(0xffef5353),
+                                                alignment: Alignment.center,
+                                                child: user.photoUrl != null ? Image.network(user.photoUrl) : Padding(
+                                                  padding: const EdgeInsets.only(top: 10),
+                                                  child: user.photoUrl == null ? const Icon(Icons.person, size: 50) : null,
+                                                ),
                                               ),
                                             ),
                                           ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(height: 6.0),
-                              GestureDetector(
-                                onTap: () {
-                                  Navigator.pushNamed(context, '/catalog/profile', arguments: user);
-                                },
-                                child: Builder(
-                                  builder: (ctx) {
-                                    bool addKey = entry.neighbors.indexOf(user) == 0;
-                                    GlobalKey key;
-                                    if (_addKey && addKey) {
-                                      key = keyOne;
-                                      _addKey = false;
-                                    }
-                                    Widget w = Text(
-                                      user.displayName,
-                                      style: Theme.of(context).textTheme.body1.copyWith(
-                                        color: Colors.white,
-                                      ),
-                                    );
-                                    return key == null ? w : Showcase.withWidget(
-                                      key: key,
-                                      container: Padding(
-                                        padding: const EdgeInsets.only(bottom: 24.0),
-                                        child: Material(
-                                          color: const Color(0xffef5353),
-                                          elevation: 6,
-                                          shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(8))),
-                                          child: Padding(
-                                            padding: const EdgeInsets.all(16),
-                                            child: Column(
-                                              crossAxisAlignment: CrossAxisAlignment.start,
-                                              children: <Widget>[
-                                                Text(
-                                                  'Профиль',
-                                                  style: Theme.of(context).textTheme.title
-                                                      .merge(TextStyle(color: Colors.white)),
+                                          Positioned(
+                                            top: 0,
+                                            right: 0,
+                                            child: ValueListenableBuilder<String>(
+                                              valueListenable: _selectedId,
+                                              builder: (context, data, child) {
+                                                return AnimatedOpacity(
+                                                  opacity: _selectedId.value == user.id ? 1.0 : 0.0,
+                                                  duration: kThemeChangeDuration,
+                                                  child: child,
+                                                );
+                                              },
+                                              child: IgnorePointer(
+                                                child: Material(
+                                                  type: MaterialType.transparency,
+                                                  child: RoundCheckbox(
+                                                    value: true,
+                                                    size: 20,
+                                                  ),
                                                 ),
-                                                const SizedBox(height: 8),
-                                                Text(
-                                                  'Чтобы посмотреть информацию\nо пользователе, нажмите на его имя',
-                                                  style: Theme.of(context).textTheme.subtitle
-                                                      .merge(TextStyle(color: Colors.white)),
-                                                ),
-                                              ],
+                                              ),
                                             ),
                                           ),
-                                        ),
+                                        ],
                                       ),
-                                      width: MediaQuery.of(context).size.width,
-                                      height: 72,
-                                      animationDuration: const Duration(seconds: 10),
-                                      child: w,
-                                    );
-                                  },
-                                ),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 6.0),
+                                  GestureDetector(
+                                    onTap: () {
+                                      Navigator.pushNamed(context, '/catalog/profile', arguments: user);
+                                    },
+                                    child: Builder(
+                                      builder: (ctx) {
+                                        bool addKey = widget.entry.neighbors.indexOf(user) == 0;
+                                        GlobalKey key;
+                                        if (_addKey && addKey) {
+                                          key = keyOne;
+                                          _addKey = false;
+                                        }
+                                        Widget w = Text(
+                                          user.displayName,
+                                          style: Theme.of(context).textTheme.body1.copyWith(
+                                            color: Colors.white,
+                                          ),
+                                        );
+                                        return key == null ? w : Showcase.withWidget(
+                                          key: key,
+                                          container: Padding(
+                                            padding: const EdgeInsets.only(bottom: 24.0),
+                                            child: Material(
+                                              color: const Color(0xffef5353),
+                                              elevation: 6,
+                                              shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(8))),
+                                              child: Padding(
+                                                padding: const EdgeInsets.all(16),
+                                                child: Column(
+                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                  children: <Widget>[
+                                                    Text(
+                                                      'Профиль',
+                                                      style: Theme.of(context).textTheme.title
+                                                          .merge(TextStyle(color: Colors.white)),
+                                                    ),
+                                                    const SizedBox(height: 8),
+                                                    Text(
+                                                      'Чтобы посмотреть информацию\nо пользователе, нажмите на его имя',
+                                                      style: Theme.of(context).textTheme.subtitle
+                                                          .merge(TextStyle(color: Colors.white)),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                          width: MediaQuery.of(context).size.width,
+                                          height: 72,
+                                          animationDuration: const Duration(seconds: 10),
+                                          child: w,
+                                        );
+                                      },
+                                    ),
+                                  ),
+                                ],
                               ),
-                            ],
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-                SizedBox(height: MediaQuery.of(context).padding.bottom),
-              ],
+                            ),
+                        ],
+                      ),
+                    ),
+                  //if (!widget.single)
+                    SizedBox(height: MediaQuery.of(context).padding.bottom),
+                ],
+              ),
             ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8.0),
@@ -358,35 +390,37 @@ class CatalogCover extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: <Widget>[
                   FloatingActionButton(
-                    child: Icon(Icons.more_vert, color: Colors.black),
+                    child: const Icon(Icons.more_vert, color: Colors.black),
                     elevation: 0,
                     highlightElevation: 0,
-                    backgroundColor: Colors.white,
+                    backgroundColor: Colors.white.withOpacity(0.8),
                     mini: true,
                     heroTag: null,
-                    onPressed: () {
-                      Navigator.of(context).pushNamed('/catalog/info', arguments: entry);
-                    },
+                    onPressed: () => Navigator.pushNamed(context, '/catalog/info', arguments: widget.entry),
                   ),
-                  FloatingActionButton(
-                    child: Icon(Icons.place, color: Colors.black),
-                    elevation: 0,
-                    highlightElevation: 0,
-                    backgroundColor: Colors.white,
-                    mini: true,
-                    heroTag: null,
-                    onPressed: () => Navigator.of(context).pushNamed('/catalog/map', arguments: entry),
-                  ),
+                  if (!widget.single)
+                    FloatingActionButton(
+                      child: const Icon(Icons.place, color: Colors.black),
+                      elevation: 0,
+                      highlightElevation: 0,
+                      backgroundColor: Colors.white.withOpacity(0.8),
+                      mini: true,
+                      heroTag: null,
+                      onPressed: () => Navigator.pushNamed(context, '/catalog/map', arguments: widget.entry),
+                    ),
                   StatefulBuilder(
                     builder: (ctx, setBtnState) {
                       Authenticated auth = BlocProvider.of<AuthenticationBloc>(context).currentState is Authenticated
                           ? BlocProvider.of<AuthenticationBloc>(context).currentState
                           : null;
                       return FloatingActionButton(
-                        child: Icon(Icons.star, color: auth?.fave?.contains(entry.id) == true ? Colors.amber : Colors.black),
+                        child: Icon(
+                          Icons.star,
+                          color: auth?.fave?.contains(widget.entry.id) == true ? Colors.amber : Colors.black,
+                        ),
                         elevation: 0,
                         highlightElevation: 0,
-                        backgroundColor: Colors.white,
+                        backgroundColor: Colors.white.withOpacity(0.8),
                         mini: true,
                         heroTag: null,
                         onPressed: () {
@@ -394,7 +428,7 @@ class CatalogCover extends StatelessWidget {
                           _stateSub = BlocProvider.of<AuthenticationBloc>(context).state.skip(1).listen((state) {
                             if (state is Authenticated) {
                               Flushbar(
-                                message: state.fave.contains(entry.id) ? 'Добавлено в избранное' : 'Удалено из избранного',
+                                message: state.fave.contains(widget.entry.id) ? 'Добавлено в избранное' : 'Удалено из избранного',
                                 borderRadius: 8.0,
                                 margin: EdgeInsets.only(
                                   bottom: MediaQuery.of(context).padding.bottom,
@@ -407,7 +441,7 @@ class CatalogCover extends StatelessWidget {
                               setBtnState(() {});
                             }
                           });
-                          BlocProvider.of<AuthenticationBloc>(context).dispatch(ToggleFave(entry.id));
+                          BlocProvider.of<AuthenticationBloc>(context).dispatch(ToggleFave(widget.entry.id));
                         },
                       );
                     },

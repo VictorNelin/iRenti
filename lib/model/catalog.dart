@@ -113,4 +113,6 @@ class CatalogEntry {
 
   @override
   bool operator ==(other) => other is CatalogEntry && hashCode == other.hashCode;
+
+  Future<CatalogEntry> loaded() async => this;
 }
