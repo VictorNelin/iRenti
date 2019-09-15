@@ -30,6 +30,25 @@ class Conversation {
   UserData get startedBy => users == null ? null : users.firstWhere((d) => d.id == startedById, orElse: () => null);
 
   UserData op(String userId) => users.firstWhere((u) => u.id != userId);
+
+  Conversation withUsers(List<UserData> users) {
+    return Conversation(
+      id: id,
+      userIds: userIds,
+      users: userIds.map((id) => users.singleWhere((u) => u.id == id)).toList(growable: false),
+      startedById: startedById,
+      startedOn: startedOn,
+      lastReadTime: lastReadTime,
+      data: data,
+      messages: messages.map((m) => Message(
+        fromId: m.fromId,
+        chatId: m.chatId,
+        text: m.text,
+        timestamp: m.timestamp,
+        from: m.from ?? users.singleWhere((u) => u.id == m.fromId, orElse: () => null),
+      )).toList(growable: false),
+    );
+  }
 }
 
 @immutable

@@ -21,21 +21,17 @@ class MessagesRepository {
     return await Future.wait(entries.map((entry) => _loadedConversation(entry, _firestore)));
   }
 
-  List<Stream<Conversation>> getStreams(Iterable<String> dialogIds) {
-    return [
-      for (String s in dialogIds)
-        _firestore.collection('chats').document(s).snapshots().transform(
-          StreamTransformer.fromHandlers(
-            handleData: (DocumentSnapshot doc, sink) async {
-              sink.add(await _loadedConversation(
-                Conversation.fromMap(doc.reference.path.split('/').last, doc.data),
-                _firestore,
-              ));
-            },
-            handleDone: (sink) => sink.close(),
-          ),
-        ),
-    ];
+  Stream<List<Conversation>> getStreams(String userId) {
+    return _firestore.collection('chats').where('userIds', arrayContains: userId).snapshots().transform(
+      StreamTransformer.fromHandlers(
+        handleData: (QuerySnapshot q, sink) async {
+          sink.add(q.documents.map((doc) {
+            return Conversation.fromMap(doc.reference.path.split('/').last, doc.data);
+          }).toList(growable: false));
+        },
+        handleDone: (sink) => sink.close(),
+      ),
+    );
   }
 
   Future<void> sendMessage(String dialogId, String userId, String text) async {
@@ -56,7 +52,7 @@ class MessagesRepository {
     await doc.setData({'lastReadTime': DateTime.now().millisecondsSinceEpoch}, merge: true);
   }
 
-  Future<Conversation> createDialog(String userId, String opId, Map<String, dynamic> data) async {
+  Future<String> createDialog(String userId, String opId, Map<String, dynamic> data) async {
     var existing = await _firestore.collection('chats')
         //.where('startedById', isEqualTo: userId)
         .where('userIds', arrayContains: userId)
@@ -79,7 +75,7 @@ class MessagesRepository {
           ).toJSON());
           oldData['messages'] = entries;
           await doc.reference.setData(oldData);
-          return Conversation.fromMap(doc.documentID, oldData);
+          return doc.documentID;
         }
       }
       return null;
@@ -99,7 +95,12 @@ class MessagesRepository {
       ).toJSON()],
     };
     await ref.setData(d);
-    return Conversation.fromMap(ref.documentID, d);
+    return ref.documentID;
+  }
+
+  Future<UserData> getUserById(String userId) async {
+    final doc = await _firestore.collection('users').document(userId).get();
+    return UserData.fromMap(doc.documentID, doc.data);
   }
 
   Future<Conversation> _loadedConversation(Conversation on, Firestore firestore) async {
@@ -124,6 +125,7 @@ class MessagesRepository {
         fromId: m.fromId,
         chatId: m.chatId,
         text: m.text,
+        data: m.data,
         timestamp: m.timestamp,
         from: m.from ?? users.singleWhere((u) => u.id == m.fromId, orElse: () => null),
       )).toList(growable: false),

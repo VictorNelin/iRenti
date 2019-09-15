@@ -1,14 +1,16 @@
 import 'dart:async';
 
-import 'package:async/async.dart';
+//import 'package:async/async.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:meta/meta.dart';
 import 'package:irenti/model/messages.dart';
+import 'package:irenti/model/user.dart';
 import 'package:irenti/repository/messages_repository.dart';
 
 class MessagesBloc extends Bloc<MessagesEvent, MessagesState> {
   final MessagesRepository _messagesRepository;
+  final Map<String, UserData> _userCache = Map();
   StreamSubscription _allSub;
 
   MessagesBloc({@required MessagesRepository messagesRepository})
@@ -18,8 +20,31 @@ class MessagesBloc extends Bloc<MessagesEvent, MessagesState> {
   @override
   MessagesState get initialState => EmptyState();
 
-  MessagesLoadedState _sortedLoaded(String uid, List<Conversation> dialogs) {
-    dialogs = List.from(dialogs)..sort((a, b) {
+  Future<MessagesLoadedState> _sortedLoaded(String uid, List<Conversation> dialogs) async {
+    for (var c in dialogs) {
+      for (String id in c.userIds)
+        _userCache[id] ??= await _messagesRepository.getUserById(id);
+    }
+    dialogs = List.of(dialogs.map((on) => Conversation(
+      id: on.id,
+      userIds: on.userIds,
+      users: on.users ?? [
+        for (String id in on.userIds)
+          _userCache[id],
+      ],
+      startedById: on.startedById,
+      lastReadTime: on.lastReadTime,
+      data: on.data,
+      messages: on.messages.map((m) => Message(
+        fromId: m.fromId,
+        chatId: m.chatId,
+        text: m.text,
+        data: m.data,
+        timestamp: m.timestamp,
+        from: m.from ?? _userCache[m.fromId],
+      )).toList(growable: false),
+    )));
+    dialogs.sort((a, b) {
       int aLast, bLast;
       try {
         aLast = a.messages.last.timestamp;
@@ -38,31 +63,26 @@ class MessagesBloc extends Bloc<MessagesEvent, MessagesState> {
 
   @override
   Stream<MessagesState> mapEventToState(MessagesEvent event) async* {
-    final MessagesState state = currentState;
+    //final MessagesState state = currentState;
     try {
       if (event is MessagesInitEvent) {
         List<Conversation> chats = await _messagesRepository.fetchDialogs(event.userId);
-        yield _sortedLoaded(event.userId, chats);
-        _allSub = StreamZip(_messagesRepository.getStreams(chats.map((c) => c.id))).listen((data) {
+        for (var chat in chats) {
+          for (var user in chat.users) {
+            _userCache[user.id] = user;
+          }
+        }
+        yield await _sortedLoaded(event.userId, chats);
+        _allSub = _messagesRepository.getStreams(event.userId).listen((data) {
           dispatch(_MessagesSetEvent(event.userId, data));
         }, onDone: () {
           _allSub?.cancel();
           _allSub = null;
         });
       } else if (event is _MessagesSetEvent) {
-        yield _sortedLoaded(event.userId, event.dialogs);
+        yield await _sortedLoaded(event.userId, event.dialogs);
       } else if (event is MessagesSendEvent) {
         _messagesRepository.sendMessage(event.chatId, event.userId, event.text);
-      } else if (event is MessagesCreateEvent && state is MessagesLoadedState) {
-        List<Conversation> chats = state.entries + [event.chat];
-        yield _sortedLoaded(event.chat.startedById, chats);
-        _allSub?.cancel();
-        _allSub = StreamZip(_messagesRepository.getStreams(chats.map((c) => c.id))).listen((data) {
-          dispatch(_MessagesSetEvent(event.chat.startedById, data));
-        }, onDone: () {
-          _allSub?.cancel();
-          _allSub = null;
-        });
       } else if (event is MessagesReadEvent) {
         _messagesRepository.readChat(event.chatId);
       }
@@ -79,10 +99,8 @@ class MessagesBloc extends Bloc<MessagesEvent, MessagesState> {
     super.dispose();
   }
 
-  Future<String> createChat(String userId, String opId, Map<String, dynamic> data) async {
-    Conversation chat = await _messagesRepository.createDialog(userId, opId, data);
-    dispatch(MessagesCreateEvent(chat));
-    return chat.id;
+  Future<String> createChat(String userId, String opId, Map<String, dynamic> data) {
+    return _messagesRepository.createDialog(userId, opId, data);
   }
 }
 

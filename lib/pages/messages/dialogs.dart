@@ -29,6 +29,21 @@ class _DialogsPageState extends State<DialogsPage> {
     super.dispose();
   }
 
+  String _getPreviewText(Conversation entry) {
+    if (entry.messages.isNotEmpty) {
+      Message last = entry.messages.last;
+      if (last.fromId == _uid) {
+        return last.text != null ? 'Вы: ${last.text}' : 'Вы добавили новую квартиру';
+      } else {
+        return last.text ?? 'Добавил новую квартиру';
+      }
+    } else {
+      return entry.startedById == _uid
+        ? 'Вы создали этот чат'
+        : 'Приглашает вас в чат';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -99,11 +114,7 @@ class _DialogsPageState extends State<DialogsPage> {
                                     ),
                                   ),
                                   Text(
-                                    entry.messages.isNotEmpty
-                                        ? (entry.messages.last.fromId == _uid ? 'Вы: ${entry.messages.last.text}' : entry.messages.last.text)
-                                        : entry.startedById == _uid
-                                        ? 'Вы создали этот чат'
-                                        : 'Приглашает вас в чат',
+                                    _getPreviewText(entry),
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                     style: TextStyle(

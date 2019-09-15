@@ -84,22 +84,23 @@ class _DialogPageState extends State<DialogPage> {
     );
   }
 
-  Widget _buildDataCard(BuildContext context, CatalogEntry data) {
+  Widget _buildDataCard(BuildContext context, CatalogEntry data, [bool showCaption = false]) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 10),
-          child: Text(
-            'Квартира, которую вы обсуждаете',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontWeight: FontWeight.normal,
-              fontSize: 12,
+        if (showCaption)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 10),
+            child: Text(
+              'Квартира, которую вы обсуждаете',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontWeight: FontWeight.normal,
+                fontSize: 12,
+              ),
             ),
           ),
-        ),
         Material(
           shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(4))),
           clipBehavior: Clip.antiAlias,
@@ -141,13 +142,6 @@ class _DialogPageState extends State<DialogPage> {
   }
 
   Widget _buildEntry(BuildContext context, Message item, Conversation chat) {
-    if (item.data != null) {
-      if (item.data == 0) return const SizedBox();
-      return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        child: _buildDataCard(context, chat.data[0]),
-      );
-    }
     return Padding(
       padding: const EdgeInsets.only(left: 20, right: 20, top: 16, bottom: 8),
       child: Directionality(
@@ -173,27 +167,30 @@ class _DialogPageState extends State<DialogPage> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                Material(
-                  type: MaterialType.card,
-                  shape: const RoundedRectangleBorder(borderRadius: BorderRadiusDirectional.only(
-                    topStart: Radius.circular(4),
-                    topEnd: Radius.circular(4),
-                    bottomStart: Radius.zero,
-                    bottomEnd: Radius.circular(4),
-                  )),
-                  child: Container(
-                    padding: const EdgeInsets.all(15),
-                    alignment: Alignment.topLeft,
-                    child: Text(
-                      item.text,
-                      textDirection: Directionality.of(context),
-                      style: TextStyle(
-                        fontWeight: FontWeight.normal,
-                        fontSize: 14,
+                if (item.data == null && item.text != null)
+                  Material(
+                    type: MaterialType.card,
+                    shape: const RoundedRectangleBorder(borderRadius: BorderRadiusDirectional.only(
+                      topStart: Radius.circular(4),
+                      topEnd: Radius.circular(4),
+                      bottomStart: Radius.zero,
+                      bottomEnd: Radius.circular(4),
+                    )),
+                    child: Container(
+                      padding: const EdgeInsets.all(15),
+                      alignment: Alignment.topLeft,
+                      child: Text(
+                        item.text ?? 'NULL',
+                        textDirection: Directionality.of(context),
+                        style: TextStyle(
+                          fontWeight: FontWeight.normal,
+                          fontSize: 14,
+                        ),
                       ),
                     ),
                   ),
-                ),
+                if (item.data != null && item.text == null)
+                  _buildDataCard(context, chat.data[item.data]),
                 Padding(
                   padding: const EdgeInsets.only(top: 12),
                   child: RichText(
@@ -321,7 +318,7 @@ class _DialogPageState extends State<DialogPage> {
                         SliverToBoxAdapter(
                           child: Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 20),
-                            child: _buildDataCard(ctx, chat.data[0]),
+                            child: _buildDataCard(ctx, chat.data[0], true),
                           ),
                         ),
                       if (_startedId != _uid)
