@@ -68,6 +68,7 @@ class Message {
   final int timestamp;
   final String text;
   final int data;
+  final String imageUrl;
   final UserData from;
 
   const Message({
@@ -76,6 +77,7 @@ class Message {
     @required this.timestamp,
     this.text,
     this.data,
+    this.imageUrl,
     this.from,
   });
 
@@ -86,6 +88,7 @@ class Message {
       timestamp: src['timestamp'],
       text: src['text'],
       data: src['data'],
+      imageUrl: src['imageUrl'],
     );
   }
 
@@ -95,6 +98,7 @@ class Message {
     'timestamp': timestamp,
     'text': text,
     'data': data,
+    'imageUrl': imageUrl,
   };
 
   Message copyWith({
@@ -103,6 +107,7 @@ class Message {
     int timestamp,
     String text,
     int data,
+    String imageUrl,
     UserData from,
   }) => Message(
     fromId: fromId ?? this.fromId,
@@ -110,6 +115,7 @@ class Message {
     timestamp: timestamp ?? this.timestamp,
     text: text ?? this.text,
     data: data ?? this.data,
+    imageUrl: imageUrl ?? this.imageUrl,
     from: from ?? this.from,
   );
 

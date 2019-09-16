@@ -1,6 +1,9 @@
 import 'dart:async';
+import 'dart:io' show File;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:irenti/model/messages.dart';
 import 'package:irenti/model/user.dart';
 
@@ -9,8 +12,13 @@ export 'package:irenti/model/user.dart';
 
 class MessagesRepository {
   final Firestore _firestore;
+  final FirebaseStorage _storage;
 
-  MessagesRepository({Firestore firestore}) : _firestore = firestore ?? Firestore.instance;
+  MessagesRepository({
+    Firestore firestore,
+    FirebaseStorage storage,
+  }) :  _firestore = firestore ?? Firestore.instance,
+        _storage = storage ?? FirebaseStorage.instance;
 
   Future<List<Conversation>> fetchDialogs(String userId) async {
     QuerySnapshot q = await _firestore.collection('chats').where('userIds', arrayContains: userId).getDocuments();
@@ -34,17 +42,30 @@ class MessagesRepository {
     );
   }
 
-  Future<void> sendMessage(String dialogId, String userId, String text) async {
+  Future<void> sendMessage(String dialogId, String userId, {String text, String imageUrl}) async {
     DocumentReference doc = _firestore.collection('chats').document(dialogId);
     Message newMsg = Message(
       fromId: userId,
       chatId: dialogId,
       text: text,
+      imageUrl: imageUrl,
       timestamp: DateTime.now().millisecondsSinceEpoch,
     );
     Map<String, dynamic> data = (await doc.get()).data;
     data['messages'] = List.from(data['messages'] + [newMsg.toJSON()]);
     await doc.setData(data, merge: true);
+  }
+
+  Future<UploadedImage> uploadImage(String dialogId, bool useCamera) async {
+    File image = await ImagePicker.pickImage(source: useCamera ? ImageSource.camera : ImageSource.gallery);
+    if (image != null) {
+      var snap = await _storage.ref()
+          .child('chats/$dialogId/${DateTime.now().millisecondsSinceEpoch}.${image.path.split('.').last}')
+          .putFile(image)
+          .onComplete;
+      return UploadedImage._(await snap.ref.getDownloadURL(), () => snap.ref.delete());
+    }
+    return null;
   }
 
   Future<void> readChat(String dialogId) async {
@@ -121,4 +142,13 @@ class MessagesRepository {
       )).toList(growable: false),
     );
   }
+}
+
+class UploadedImage {
+  final String url;
+  final void Function() delete;
+
+  const UploadedImage._(this.url, this.delete);
+
+  static const empty = UploadedImage._(null, null);
 }

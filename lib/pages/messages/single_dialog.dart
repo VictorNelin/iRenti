@@ -171,7 +171,7 @@ class _DialogPageState extends State<DialogPage> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                if (item.data == null && item.text != null)
+                if (item.data == null && (item.text != null || item.imageUrl != null))
                   Material(
                     type: MaterialType.card,
                     shape: const RoundedRectangleBorder(borderRadius: BorderRadiusDirectional.only(
@@ -180,16 +180,37 @@ class _DialogPageState extends State<DialogPage> {
                       bottomStart: Radius.zero,
                       bottomEnd: Radius.circular(4),
                     )),
+                    clipBehavior: Clip.antiAlias,
                     child: Container(
-                      padding: const EdgeInsets.all(15),
+                      padding: item.text == null || item.text.isEmpty ? EdgeInsets.zero : const EdgeInsets.all(15),
                       alignment: Alignment.topLeft,
-                      child: Text(
-                        item.text ?? 'NULL',
-                        textDirection: Directionality.of(context),
-                        style: TextStyle(
-                          fontWeight: FontWeight.normal,
-                          fontSize: 14,
-                        ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: <Widget>[
+                          if (item.imageUrl != null)
+                            ConstrainedBox(
+                              constraints: BoxConstraints(
+                                maxHeight: MediaQuery.of(context).size.width * 0.75,
+                              ),
+                              child: Image(
+                                image: CachedNetworkImageProvider(item.imageUrl),
+                                width: double.infinity,
+                                fit: BoxFit.fitWidth,
+                              ),
+                            ),
+                          if (item.imageUrl != null && item.text != null && item.text.isNotEmpty)
+                            const SizedBox(height: 15),
+                          if (item.text != null && item.text.isNotEmpty)
+                            Text(
+                              item.text,
+                              textDirection: Directionality.of(context),
+                              style: TextStyle(
+                                fontWeight: FontWeight.normal,
+                                fontSize: 14,
+                              ),
+                            ),
+                        ],
                       ),
                     ),
                   ),
@@ -341,9 +362,10 @@ class _DialogPageState extends State<DialogPage> {
             ),
           ),
           _ReplyField(
-            onMessage: (msg) {
+            dialogId: widget.dialogId,
+            onMessage: (msg, img) {
               _sender = Completer();
-              _messagesBloc.dispatch(MessagesSendEvent(_uid, widget.dialogId, msg));
+              _messagesBloc.dispatch(MessagesSendEvent(_uid, widget.dialogId, text: msg, imageUrl: img));
               return _sender.future;
             },
           ),
@@ -353,103 +375,185 @@ class _DialogPageState extends State<DialogPage> {
   }
 }
 
-typedef Future SendCallback(String message);
+typedef Future SendCallback(String message, String imageUrl);
 
 class _ReplyField extends StatefulWidget {
+  final String dialogId;
   final SendCallback onMessage;
 
-  _ReplyField({Key key, this.onMessage}) : super(key: key);
+  _ReplyField({Key key, this.dialogId, this.onMessage}) : super(key: key);
 
   @override
   _ReplyFieldState createState() => _ReplyFieldState();
 }
 
 class _ReplyFieldState extends State<_ReplyField> {
-  final TextEditingController _inputController = TextEditingController();
+  final TextEditingController _input = TextEditingController();
   final ValueNotifier<bool> _canSend = ValueNotifier(false);
+  final ValueNotifier<UploadedImage> _image = ValueNotifier(null);
 
   @override
   Widget build(BuildContext context) {
     return Material(
       type: MaterialType.card,
       shape: const RoundedRectangleBorder(),
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(
-          minHeight: 50,
-        ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: <Widget>[
-            PopupMenuButton(
-              icon: const Icon(Icons.add, color: const Color(0xFFEF5353)),
-              itemBuilder: (ctx) => [
-                PopupMenuItem(
-                  child: RichText(
-                    text: TextSpan(
-                      children: [
-                        WidgetSpan(
-                          child: Icon(Icons.image, color: Theme.of(ctx).iconTheme.color),
-                          alignment: PlaceholderAlignment.middle,
-                        ),
-                        const WidgetSpan(child: SizedBox(width: 16)),
-                        TextSpan(
-                          text: 'Изображение',
-                          style: Theme.of(ctx).textTheme.subhead,
-                        ),
-                      ],
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          ValueListenableBuilder<UploadedImage>(
+            valueListenable: _image,
+            builder: (ctx, data, child) {
+              Widget result;
+              if (data == null) {
+                return const SizedBox.shrink();
+              } else if (data == UploadedImage.empty) {
+                result = Row(
+                  children: const <Widget>[
+                    Text('Загрузка...'),
+                    Expanded(child: SizedBox.shrink()),
+                    CupertinoActivityIndicator(),
+                  ],
+                );
+              } else {
+                result = Row(
+                  children: <Widget>[
+                    const Icon(Icons.image),
+                    const SizedBox(width: 16),
+                    const Text('Изображение'),
+                    const Expanded(child: SizedBox.shrink()),
+                    IconButton(
+                      icon: const Icon(Icons.close),
+                      onPressed: () {
+                        data.delete();
+                        _image.value = null;
+                        _canSend.value = _input.text != null && _input.text.trim().isNotEmpty;
+                      },
                     ),
+                  ],
+                );
+              }
+              return Container(
+                height: 50,
+                decoration: BoxDecoration(
+                  border: Border(bottom: Divider.createBorderSide(ctx)),
+                ),
+                margin: EdgeInsets.symmetric(horizontal: 20),
+                child: result,
+              );
+            },
+          ),
+          ConstrainedBox(
+            constraints: const BoxConstraints(
+              minHeight: 50,
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: <Widget>[
+                PopupMenuButton<int>(
+                  icon: const Icon(Icons.add, color: const Color(0xFFEF5353)),
+                  itemBuilder: (ctx) => [
+                    PopupMenuItem(
+                      value: 0,
+                      child: RichText(
+                        text: TextSpan(
+                          children: [
+                            WidgetSpan(
+                              child: Icon(Icons.image, color: Theme.of(ctx).iconTheme.color),
+                              alignment: PlaceholderAlignment.middle,
+                            ),
+                            const WidgetSpan(child: SizedBox(width: 16)),
+                            TextSpan(
+                              text: 'Изображение',
+                              style: Theme.of(ctx).textTheme.subhead,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    PopupMenuItem(
+                      value: 1,
+                      child: RichText(
+                        text: TextSpan(
+                          children: [
+                            WidgetSpan(
+                              child: Icon(Icons.contacts, color: Theme.of(ctx).iconTheme.color),
+                              alignment: PlaceholderAlignment.middle,
+                            ),
+                            const WidgetSpan(child: SizedBox(width: 16)),
+                            TextSpan(
+                              text: 'Контакт',
+                              style: Theme.of(ctx).textTheme.subhead,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                  onSelected: (i) {
+                    switch (i) {
+                      case 0:
+                        showDialog<bool>(
+                          context: context,
+                          builder: (ctx) => CupertinoAlertDialog(
+                            title: Text('Загрузить изображение'),
+                            actions: <Widget>[
+                              CupertinoDialogAction(
+                                child: Text('Сделать фото'),
+                                onPressed: () => Navigator.pop(ctx, true),
+                              ),
+                              CupertinoDialogAction(
+                                child: Text('Выбрать из галереи'),
+                                onPressed: () => Navigator.pop(ctx, false),
+                              ),
+                            ],
+                          ),
+                        ).then((b) {
+                          if (b != null) {
+                            _image.value = UploadedImage.empty;
+                            BlocProvider.of<MessagesBloc>(context).uploadImage(widget.dialogId, b).then((i) {
+                              _image.value = i;
+                              _canSend.value = true;
+                            });
+                          }
+                        });
+                    }
+                  },
+                ),
+                Expanded(
+                  child: TextField(
+                    controller: _input,
+                    textCapitalization: TextCapitalization.sentences,
+                    minLines: 1,
+                    maxLines: 3,
+                    decoration: const InputDecoration(
+                      border: InputBorder.none,
+                      hintText: 'Сообщение...',
+                    ),
+                    onChanged: (s) => _canSend.value = (s != null && s.trim().isNotEmpty) || _image.value?.url != null,
                   ),
                 ),
-                PopupMenuItem(
-                  child: RichText(
-                    text: TextSpan(
-                      children: [
-                        WidgetSpan(
-                          child: Icon(Icons.contacts, color: Theme.of(ctx).iconTheme.color),
-                          alignment: PlaceholderAlignment.middle,
-                        ),
-                        const WidgetSpan(child: SizedBox(width: 16)),
-                        TextSpan(
-                          text: 'Контакт',
-                          style: Theme.of(ctx).textTheme.subhead,
-                        ),
-                      ],
-                    ),
-                  ),
+                ValueListenableBuilder<bool>(
+                  valueListenable: _canSend,
+                  builder: (context, data, _) {
+                    return FlatButton(
+                      child: const Text('Отправить'),
+                      textColor: const Color(0xff272d30),
+                      shape: const RoundedRectangleBorder(),
+                      onPressed: data ? () async {
+                        if (widget.onMessage == null || !data) return;
+                        widget.onMessage(_input.text, _image?.value?.url);
+                        _input..clearComposing()..clear();
+                        _image.value = null;
+                        _canSend.value = false;
+                      } : null,
+                    );
+                  },
                 ),
               ],
             ),
-            Expanded(
-              child: TextField(
-                controller: _inputController,
-                textCapitalization: TextCapitalization.sentences,
-                minLines: 1,
-                maxLines: 3,
-                decoration: const InputDecoration(
-                  border: InputBorder.none,
-                  hintText: 'Сообщение...',
-                ),
-                onChanged: (s) => _canSend.value = s != null && s.trim().isNotEmpty,
-              ),
-            ),
-            ValueListenableBuilder<bool>(
-              valueListenable: _canSend,
-              builder: (context, data, _) {
-                return FlatButton(
-                  child: const Text('Отправить'),
-                  textColor: const Color(0xff272d30),
-                  shape: const RoundedRectangleBorder(),
-                  onPressed: data ? () async {
-                    if (widget.onMessage == null || !data) return;
-                    widget.onMessage(_inputController.text);
-                    _inputController..clearComposing()..clear();
-                    _canSend.value = false;
-                  } : null,
-                );
-              },
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

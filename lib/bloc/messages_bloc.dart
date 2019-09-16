@@ -8,6 +8,8 @@ import 'package:irenti/model/messages.dart';
 import 'package:irenti/model/user.dart';
 import 'package:irenti/repository/messages_repository.dart';
 
+export 'package:irenti/repository/messages_repository.dart' show UploadedImage;
+
 class MessagesBloc extends Bloc<MessagesEvent, MessagesState> {
   final MessagesRepository _messagesRepository;
   final Map<String, UserData> _userCache = Map();
@@ -72,7 +74,7 @@ class MessagesBloc extends Bloc<MessagesEvent, MessagesState> {
       } else if (event is _MessagesSetEvent) {
         yield await _sortedLoaded(event.userId, event.dialogs);
       } else if (event is MessagesSendEvent) {
-        _messagesRepository.sendMessage(event.chatId, event.userId, event.text);
+        _messagesRepository.sendMessage(event.chatId, event.userId, text: event.text, imageUrl: event.imageUrl);
       } else if (event is MessagesReadEvent) {
         _messagesRepository.readChat(event.chatId);
       }
@@ -91,6 +93,10 @@ class MessagesBloc extends Bloc<MessagesEvent, MessagesState> {
 
   Future<String> createChat(String userId, String opId, Map<String, dynamic> data) {
     return _messagesRepository.createDialog(userId, opId, data);
+  }
+
+  Future<UploadedImage> uploadImage(String dialogId, bool useCamera) {
+    return _messagesRepository.uploadImage(dialogId, useCamera);
   }
 }
 
@@ -165,8 +171,9 @@ class MessagesSendEvent extends MessagesEvent {
   final String chatId;
   final String userId;
   final String text;
+  final String imageUrl;
 
-  MessagesSendEvent(this.userId, this.chatId, this.text) : super([userId, chatId, text]);
+  MessagesSendEvent(this.userId, this.chatId, {this.text, this.imageUrl}) : super([userId, chatId, text, imageUrl]);
 }
 
 @immutable
