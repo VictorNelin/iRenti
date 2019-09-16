@@ -97,6 +97,7 @@ class MessagesRepository {
         if (ids.contains(opId)) {
           Map<String, dynamic> oldData = Map.of(doc.data);
           List entries = List.from(oldData['data']);
+          if (entries.any((e) => e['id'] == data['id'])) throw StateError(doc.documentID);
           int l = entries.length;
           entries.add(data);
           oldData['data'] = entries;
@@ -109,9 +110,10 @@ class MessagesRepository {
           ).toJSON());
           oldData['messages'] = entries;
           await doc.reference.setData(oldData);
-          return doc.documentID;
+          throw StateError(doc.documentID);
         }
       }
+      // shouldn't get here
       return null;
     }
     DocumentReference ref = _firestore.collection('chats').document();

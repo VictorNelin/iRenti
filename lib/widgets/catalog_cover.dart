@@ -55,67 +55,84 @@ class _CatalogCoverState extends State<CatalogCover> {
               onTap: _creating ? null : () async {
                 _creating = true;
                 _dialogOverlay.value.markNeedsBuild();
-                await BlocProvider.of<MessagesBloc>(context).createChat(widget.uid, user.id, entry.toMap());
-                _creating = false;
-                _dialogOverlay.value.remove();
-                _dialogOverlay.value = null;
-                showModalBottomSheet(
-                  context: context,
-                  builder: (ctx) => Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: <Widget>[
-                        Text(
-                          '«ПРИВЕТ!»',
-                          style: Theme.of(context).textTheme.headline,
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: 12),
-                        Text(
-                          'Создан новый чат\nс пользователем ${user.displayName}',
-                          style: Theme.of(context).textTheme.title,
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: 12),
-                        Text(
-                          'Вы обсуждаете:\n"${entry.titleFormatted}"',
-                          style: Theme.of(context).textTheme.body1.copyWith(
-                            color: const Color(0xff272d30).withOpacity(0.7),
+                BlocProvider.of<MessagesBloc>(context).createChat(widget.uid, user.id, entry.toMap()).then((id) {
+                  _creating = false;
+                  _dialogOverlay.value.remove();
+                  _dialogOverlay.value = null;
+                  showModalBottomSheet(
+                    context: context,
+                    builder: (ctx) => Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: <Widget>[
+                          Text(
+                            '«ПРИВЕТ!»',
+                            style: Theme.of(context).textTheme.headline,
+                            textAlign: TextAlign.center,
                           ),
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: 12),
-                        FlatButton(
-                          color: const Color(0xFFEF5353),
-                          onPressed: () {
-                            Navigator.pop(ctx);
-                            _selection.value?.remove();
-                            _selection.value = null;
-                          },
-                          shape: StadiumBorder(),
-                          child: Text('ПРОДОЛЖИТЬ ПОИСК'),
-                        ),
-                        FlatButton(
-                          onPressed: () {
-                            Navigator.pop(ctx);
-                            _selection.value?.remove();
-                            _selection.value = null;
-                            Navigator.pushNamed(context, '/dialog', arguments: {
-                              'id': entry.id,
-                              'title': user.displayName,
-                            });
-                          },
-                          child: Text('ПЕРЕЙТИ В ЧАТ'),
-                        ),
-                      ],
+                          const SizedBox(height: 12),
+                          Text(
+                            'Создан новый чат\nс пользователем ${user.displayName}',
+                            style: Theme.of(context).textTheme.title,
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            'Вы обсуждаете:\n"${entry.titleFormatted}"',
+                            style: Theme.of(context).textTheme.body1.copyWith(
+                              color: const Color(0xff272d30).withOpacity(0.7),
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 12),
+                          FlatButton(
+                            color: const Color(0xFFEF5353),
+                            onPressed: () {
+                              Navigator.pop(ctx);
+                              _selection.value?.remove();
+                              _selection.value = null;
+                            },
+                            shape: StadiumBorder(),
+                            child: Text('ПРОДОЛЖИТЬ ПОИСК'),
+                          ),
+                          FlatButton(
+                            onPressed: () {
+                              Navigator.pop(ctx);
+                              _selection.value?.remove();
+                              _selection.value = null;
+                              Navigator.pushNamed(context, '/dialog', arguments: {
+                                'id': id,
+                                'title': user.displayName,
+                              });
+                            },
+                            child: Text('ПЕРЕЙТИ В ЧАТ'),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                  shape: const RoundedRectangleBorder(
-                    borderRadius: BorderRadius.vertical(top: Radius.circular(10)),
-                  ),
-                );
+                    shape: const RoundedRectangleBorder(
+                      borderRadius: BorderRadius.vertical(top: Radius.circular(10)),
+                    ),
+                  );
+                }, onError: (e, stack) {
+                  if (e is StateError) {
+                    Navigator.pop(ctx);
+                    try {
+                      _selection.value?.remove();
+                    } catch (_) {
+                    } finally {
+                      _selection.value = null;
+                    }
+                    Navigator.pushNamed(context, '/dialog', arguments: {
+                      'id': e.message,
+                      'title': user.displayName,
+                    });
+                  } else {
+                    throw e;
+                  }
+                });
               },
               child: Align(
                 alignment: Alignment.center,
