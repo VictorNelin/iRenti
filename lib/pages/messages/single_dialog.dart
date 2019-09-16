@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:irenti/bloc/auth_bloc.dart';
 import 'package:irenti/bloc/messages_bloc.dart';
 import 'package:irenti/image.dart';
@@ -156,13 +157,18 @@ class _DialogPageState extends State<DialogPage> {
           children: <Widget>[
             Padding(
               padding: const EdgeInsetsDirectional.only(end: 10),
-              child: CircleAvatar(
-                radius: 18,
-                backgroundImage: item.from.photoUrl != null ? CachedNetworkImageProvider(item.from.photoUrl) : null,
-                child: ClipOval(
-                  child: Padding(
-                    padding: const EdgeInsets.only(top: 6),
-                    child: item.from.photoUrl == null ? const Icon(Icons.person, size: 36) : null,
+              child: GestureDetector(
+                onTap: item.fromId == _uid ? null : () {
+                  Navigator.pushNamed(context, '/catalog/profile', arguments: item.from);
+                },
+                child: CircleAvatar(
+                  radius: 18,
+                  backgroundImage: item.from.photoUrl != null ? CachedNetworkImageProvider(item.from.photoUrl) : null,
+                  child: ClipOval(
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 6),
+                      child: item.from.photoUrl == null ? const Icon(Icons.person, size: 36) : null,
+                    ),
                   ),
                 ),
               ),
@@ -171,7 +177,7 @@ class _DialogPageState extends State<DialogPage> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                if (item.data == null && (item.text != null || item.imageUrl != null))
+                if (item.data == null && (item.text != null || item.imageUrl != null || item.phone != null))
                   Material(
                     type: MaterialType.card,
                     shape: const RoundedRectangleBorder(borderRadius: BorderRadiusDirectional.only(
@@ -208,6 +214,18 @@ class _DialogPageState extends State<DialogPage> {
                               style: TextStyle(
                                 fontWeight: FontWeight.normal,
                                 fontSize: 14,
+                              ),
+                            ),
+                          if (item.phone != null)
+                            GestureDetector(
+                              onTap: () => launch('tel:${item.phone}'),
+                              child: Directionality(
+                                textDirection: Directionality.of(context),
+                                child: ListTile(
+                                  trailing: const Icon(Icons.phone),
+                                  title: Text(item.from.displayName),
+                                  subtitle: Text(item.phone),
+                                ),
                               ),
                             ),
                         ],
@@ -368,6 +386,13 @@ class _DialogPageState extends State<DialogPage> {
               _messagesBloc.dispatch(MessagesSendEvent(_uid, widget.dialogId, text: msg, imageUrl: img));
               return _sender.future;
             },
+            onContact: () {
+              _messagesBloc.dispatch(MessagesSendContactEvent(
+                _uid,
+                widget.dialogId,
+                (BlocProvider.of<AuthenticationBloc>(context).currentState as Authenticated).user.phoneNumber,
+              ));
+            },
           ),
         ],
       ),
@@ -380,8 +405,9 @@ typedef Future SendCallback(String message, String imageUrl);
 class _ReplyField extends StatefulWidget {
   final String dialogId;
   final SendCallback onMessage;
+  final VoidCallback onContact;
 
-  _ReplyField({Key key, this.dialogId, this.onMessage}) : super(key: key);
+  _ReplyField({Key key, this.dialogId, this.onMessage, this.onContact}) : super(key: key);
 
   @override
   _ReplyFieldState createState() => _ReplyFieldState();
@@ -450,75 +476,108 @@ class _ReplyFieldState extends State<_ReplyField> {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: <Widget>[
-                PopupMenuButton<int>(
-                  icon: const Icon(Icons.add, color: const Color(0xFFEF5353)),
-                  itemBuilder: (ctx) => [
-                    PopupMenuItem(
-                      value: 0,
-                      child: RichText(
-                        text: TextSpan(
-                          children: [
-                            WidgetSpan(
-                              child: Icon(Icons.image, color: Theme.of(ctx).iconTheme.color),
-                              alignment: PlaceholderAlignment.middle,
+                ValueListenableBuilder(
+                  valueListenable: _image,
+                  builder: (ctx, data, _) {
+                    return PopupMenuButton<int>(
+                      enabled: data == null,
+                      icon: const Icon(Icons.add, color: Color(0xFFEF5353)),
+                      itemBuilder: (ctx) => [
+                        PopupMenuItem(
+                          value: 0,
+                          child: RichText(
+                            text: TextSpan(
+                              children: [
+                                WidgetSpan(
+                                  child: Icon(Icons.image, color: Theme.of(ctx).iconTheme.color),
+                                  alignment: PlaceholderAlignment.middle,
+                                ),
+                                const WidgetSpan(child: SizedBox(width: 16)),
+                                TextSpan(
+                                  text: 'Изображение',
+                                  style: Theme.of(ctx).textTheme.subhead,
+                                ),
+                              ],
                             ),
-                            const WidgetSpan(child: SizedBox(width: 16)),
-                            TextSpan(
-                              text: 'Изображение',
-                              style: Theme.of(ctx).textTheme.subhead,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    PopupMenuItem(
-                      value: 1,
-                      child: RichText(
-                        text: TextSpan(
-                          children: [
-                            WidgetSpan(
-                              child: Icon(Icons.contacts, color: Theme.of(ctx).iconTheme.color),
-                              alignment: PlaceholderAlignment.middle,
-                            ),
-                            const WidgetSpan(child: SizedBox(width: 16)),
-                            TextSpan(
-                              text: 'Контакт',
-                              style: Theme.of(ctx).textTheme.subhead,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                  onSelected: (i) {
-                    switch (i) {
-                      case 0:
-                        showDialog<bool>(
-                          context: context,
-                          builder: (ctx) => CupertinoAlertDialog(
-                            title: Text('Загрузить изображение'),
-                            actions: <Widget>[
-                              CupertinoDialogAction(
-                                child: Text('Сделать фото'),
-                                onPressed: () => Navigator.pop(ctx, true),
-                              ),
-                              CupertinoDialogAction(
-                                child: Text('Выбрать из галереи'),
-                                onPressed: () => Navigator.pop(ctx, false),
-                              ),
-                            ],
                           ),
-                        ).then((b) {
-                          if (b != null) {
-                            _image.value = UploadedImage.empty;
-                            BlocProvider.of<MessagesBloc>(context).uploadImage(widget.dialogId, b).then((i) {
-                              _image.value = i;
-                              _canSend.value = true;
+                        ),
+                        if (widget.onContact != null)
+                          PopupMenuItem(
+                            value: 1,
+                            child: RichText(
+                              text: TextSpan(
+                                children: [
+                                  WidgetSpan(
+                                    child: Icon(Icons.contacts, color: Theme.of(ctx).iconTheme.color),
+                                    alignment: PlaceholderAlignment.middle,
+                                  ),
+                                  const WidgetSpan(child: SizedBox(width: 16)),
+                                  TextSpan(
+                                    text: 'Контакт',
+                                    style: Theme.of(ctx).textTheme.subhead,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                      ],
+                      onSelected: (i) {
+                        switch (i) {
+                          case 0:
+                            showDialog<bool>(
+                              context: context,
+                              builder: (ctx) => CupertinoAlertDialog(
+                                title: Text('Загрузить изображение'),
+                                actions: <Widget>[
+                                  CupertinoDialogAction(
+                                    child: Text('Сделать фото'),
+                                    onPressed: () => Navigator.pop(ctx, true),
+                                  ),
+                                  CupertinoDialogAction(
+                                    child: Text('Выбрать из галереи'),
+                                    onPressed: () => Navigator.pop(ctx, false),
+                                  ),
+                                ],
+                              ),
+                            ).then((b) {
+                              if (b != null) {
+                                _image.value = UploadedImage.empty;
+                                BlocProvider.of<MessagesBloc>(context).uploadImage(widget.dialogId, b).then((i) {
+                                  _image.value = i;
+                                  _canSend.value = true;
+                                });
+                              }
                             });
-                          }
-                        });
-                    }
-                  },
+                            break;
+                          case 1:
+                            showDialog<bool>(
+                              context: context,
+                              builder: (ctx) => CupertinoAlertDialog(
+                                title: Text('Подтверждение'),
+                                content: Text('Вы уверены, что хотите поделиться своим номером телефона? Это действие нельзя отменить!'),
+                                actions: <Widget>[
+                                  CupertinoDialogAction(
+                                    child: Text('Да'),
+                                    isDefaultAction: true,
+                                    onPressed: () => Navigator.pop(ctx, true),
+                                  ),
+                                  CupertinoDialogAction(
+                                    child: Text('Нет'),
+                                    isDestructiveAction: true,
+                                    onPressed: () => Navigator.pop(ctx, false),
+                                  ),
+                                ],
+                              ),
+                            ).then((b) {
+                              if (b == true) {
+                                widget.onContact();
+                              }
+                            });
+                            break;
+                        }
+                      },
+                    );
+                  }
                 ),
                 Expanded(
                   child: TextField(

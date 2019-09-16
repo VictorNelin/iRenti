@@ -56,6 +56,19 @@ class MessagesRepository {
     await doc.setData(data, merge: true);
   }
 
+  Future<void> sendContact(String dialogId, String userId, String phone) async {
+    DocumentReference doc = _firestore.collection('chats').document(dialogId);
+    Message newMsg = Message(
+      fromId: userId,
+      chatId: dialogId,
+      phone: phone,
+      timestamp: DateTime.now().millisecondsSinceEpoch,
+    );
+    Map<String, dynamic> data = (await doc.get()).data;
+    data['messages'] = List.from(data['messages'] + [newMsg.toJSON()]);
+    await doc.setData(data, merge: true);
+  }
+
   Future<UploadedImage> uploadImage(String dialogId, bool useCamera) async {
     File image = await ImagePicker.pickImage(source: useCamera ? ImageSource.camera : ImageSource.gallery);
     if (image != null) {

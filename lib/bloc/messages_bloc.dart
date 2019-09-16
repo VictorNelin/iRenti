@@ -75,6 +75,8 @@ class MessagesBloc extends Bloc<MessagesEvent, MessagesState> {
         yield await _sortedLoaded(event.userId, event.dialogs);
       } else if (event is MessagesSendEvent) {
         _messagesRepository.sendMessage(event.chatId, event.userId, text: event.text, imageUrl: event.imageUrl);
+      } else if (event is MessagesSendContactEvent) {
+        _messagesRepository.sendContact(event.chatId, event.userId, event.phone);
       } else if (event is MessagesReadEvent) {
         _messagesRepository.readChat(event.chatId);
       }
@@ -174,6 +176,15 @@ class MessagesSendEvent extends MessagesEvent {
   final String imageUrl;
 
   MessagesSendEvent(this.userId, this.chatId, {this.text, this.imageUrl}) : super([userId, chatId, text, imageUrl]);
+}
+
+@immutable
+class MessagesSendContactEvent extends MessagesEvent {
+  final String chatId;
+  final String userId;
+  final String phone;
+
+  MessagesSendContactEvent(this.userId, this.chatId, this.phone) : super([userId, chatId, phone]);
 }
 
 @immutable

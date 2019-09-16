@@ -69,6 +69,7 @@ class Message {
   final String text;
   final int data;
   final String imageUrl;
+  final String phone;
   final UserData from;
 
   const Message({
@@ -78,6 +79,7 @@ class Message {
     this.text,
     this.data,
     this.imageUrl,
+    this.phone,
     this.from,
   });
 
@@ -89,6 +91,7 @@ class Message {
       text: src['text'],
       data: src['data'],
       imageUrl: src['imageUrl'],
+      phone: src['phone'],
     );
   }
 
@@ -99,6 +102,7 @@ class Message {
     'text': text,
     'data': data,
     'imageUrl': imageUrl,
+    'phone': phone,
   };
 
   Message copyWith({
@@ -108,6 +112,7 @@ class Message {
     String text,
     int data,
     String imageUrl,
+    String phone,
     UserData from,
   }) => Message(
     fromId: fromId ?? this.fromId,
@@ -116,6 +121,7 @@ class Message {
     text: text ?? this.text,
     data: data ?? this.data,
     imageUrl: imageUrl ?? this.imageUrl,
+    phone: phone ?? this.phone,
     from: from ?? this.from,
   );
 
