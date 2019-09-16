@@ -13,7 +13,16 @@ class Conversation {
   final List<CatalogEntry> data;
   final List<Message> messages;
 
-  const Conversation({this.id, this.userIds, this.startedById, this.startedOn, this.lastReadTime, this.data, this.messages = const [], this.users});
+  const Conversation({
+    this.id,
+    this.userIds,
+    this.users,
+    this.startedById,
+    this.startedOn,
+    this.lastReadTime,
+    this.data,
+    this.messages = const [],
+  });
 
   factory Conversation.fromMap(String id, Map<String, dynamic> src) {
     return Conversation(
@@ -27,38 +36,39 @@ class Conversation {
     );
   }
 
+  Conversation copyWith({
+    String id,
+    List<String> userIds,
+    List<UserData> users,
+    String startedById,
+    int startedOn,
+    int lastReadTime,
+    List<CatalogEntry> data,
+    List<Message> messages,
+  }) => Conversation(
+    id: id ?? this.id,
+    userIds: userIds ?? this.userIds,
+    users: users ?? this.users,
+    startedById: startedById ?? this.startedById,
+    startedOn: startedOn ?? this.startedOn,
+    lastReadTime: lastReadTime ?? this.lastReadTime,
+    data: data ?? this.data,
+    messages : messages  ?? this.messages,
+  );
+
   UserData get startedBy => users == null ? null : users.firstWhere((d) => d.id == startedById, orElse: () => null);
 
   UserData op(String userId) => users.firstWhere((u) => u.id != userId);
-
-  Conversation withUsers(List<UserData> users) {
-    return Conversation(
-      id: id,
-      userIds: userIds,
-      users: userIds.map((id) => users.singleWhere((u) => u.id == id)).toList(growable: false),
-      startedById: startedById,
-      startedOn: startedOn,
-      lastReadTime: lastReadTime,
-      data: data,
-      messages: messages.map((m) => Message(
-        fromId: m.fromId,
-        chatId: m.chatId,
-        text: m.text,
-        timestamp: m.timestamp,
-        from: m.from ?? users.singleWhere((u) => u.id == m.fromId, orElse: () => null),
-      )).toList(growable: false),
-    );
-  }
 }
 
 @immutable
 class Message {
   final String fromId;
-  final UserData from;
   final String chatId;
+  final int timestamp;
   final String text;
   final int data;
-  final int timestamp;
+  final UserData from;
 
   const Message({
     @required this.fromId,
@@ -86,6 +96,22 @@ class Message {
     'text': text,
     'data': data,
   };
+
+  Message copyWith({
+    String fromId,
+    String chatId,
+    int timestamp,
+    String text,
+    int data,
+    UserData from,
+  }) => Message(
+    fromId: fromId ?? this.fromId,
+    chatId: chatId ?? this.chatId,
+    timestamp: timestamp ?? this.timestamp,
+    text: text ?? this.text,
+    data: data ?? this.data,
+    from: from ?? this.from,
+  );
 
   bool out(String selfId) => fromId == selfId;
 }

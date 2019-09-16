@@ -114,19 +114,9 @@ class MessagesRepository {
           data: doc.data['profile']?.map((v) => v is Timestamp ? v.toDate() : v)?.toList(growable: false),
         ),
     ];
-    return Conversation(
-      id: on.id,
-      userIds: on.userIds,
+    return on.copyWith(
       users: users,
-      startedById: on.startedById,
-      lastReadTime: on.lastReadTime,
-      data: on.data,
-      messages: on.messages.map((m) => Message(
-        fromId: m.fromId,
-        chatId: m.chatId,
-        text: m.text,
-        data: m.data,
-        timestamp: m.timestamp,
+      messages: on.messages.map((m) => m.copyWith(
         from: m.from ?? users.singleWhere((u) => u.id == m.fromId, orElse: () => null),
       )).toList(growable: false),
     );

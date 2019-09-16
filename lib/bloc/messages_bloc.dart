@@ -25,22 +25,12 @@ class MessagesBloc extends Bloc<MessagesEvent, MessagesState> {
       for (String id in c.userIds)
         _userCache[id] ??= await _messagesRepository.getUserById(id);
     }
-    dialogs = List.of(dialogs.map((on) => Conversation(
-      id: on.id,
-      userIds: on.userIds,
+    dialogs = List.of(dialogs.map((on) => on.copyWith(
       users: on.users ?? [
         for (String id in on.userIds)
           _userCache[id],
       ],
-      startedById: on.startedById,
-      lastReadTime: on.lastReadTime,
-      data: on.data,
-      messages: on.messages.map((m) => Message(
-        fromId: m.fromId,
-        chatId: m.chatId,
-        text: m.text,
-        data: m.data,
-        timestamp: m.timestamp,
+      messages: on.messages.map((m) => m.copyWith(
         from: m.from ?? _userCache[m.fromId],
       )).toList(growable: false),
     )));
