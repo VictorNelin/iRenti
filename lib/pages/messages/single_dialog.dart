@@ -5,6 +5,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:irenti/bloc/auth_bloc.dart';
 import 'package:irenti/bloc/messages_bloc.dart';
+import 'package:irenti/image.dart';
 import 'package:irenti/model/catalog.dart';
 import 'package:irenti/model/messages.dart';
 
@@ -104,36 +105,39 @@ class _DialogPageState extends State<DialogPage> {
         Material(
           shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(4))),
           clipBehavior: Clip.antiAlias,
-          child: Container(
-            height: 110,
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: <Widget>[
-                AspectRatio(
-                  aspectRatio: 1,
-                  child: Image.network(data.photos[0], fit: BoxFit.cover),
-                ),
-                Expanded(child: Padding(
-                    padding: const EdgeInsets.all(10),
-                    child: Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      Text(data.titleFormatted, style: TextStyle(
-                        fontWeight: FontWeight.normal,
-                        fontSize: 14,
-                      )),
-                      Text(
-                        '${data.owner != null ? 'Хозяин:\n${data.owner}, ' : ''}${data.phones[0]}',
-                        style: TextStyle(
-                          fontWeight: FontWeight.w500,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ],
+          child: InkWell(
+            onTap: () => Navigator.pushNamed(context, '/catalog/single', arguments: data),
+            child: Container(
+              height: 110,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: <Widget>[
+                  AspectRatio(
+                    aspectRatio: 1,
+                    child: Image(image: CachedNetworkImageProvider(data.photos[0]), fit: BoxFit.cover),
                   ),
-                )),
-              ],
+                  Expanded(child: Padding(
+                      padding: const EdgeInsets.all(10),
+                      child: Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        Text(data.titleFormatted, style: TextStyle(
+                          fontWeight: FontWeight.normal,
+                          fontSize: 14,
+                        )),
+                        Text(
+                          '${data.owner != null ? 'Хозяин:\n${data.owner}, ' : ''}${data.phones[0]}',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w500,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  )),
+                ],
+              ),
             ),
           ),
         ),
@@ -154,7 +158,7 @@ class _DialogPageState extends State<DialogPage> {
               padding: const EdgeInsetsDirectional.only(end: 10),
               child: CircleAvatar(
                 radius: 18,
-                backgroundImage: item.from.photoUrl != null ? NetworkImage(item.from.photoUrl) : null,
+                backgroundImage: item.from.photoUrl != null ? CachedNetworkImageProvider(item.from.photoUrl) : null,
                 child: ClipOval(
                   child: Padding(
                     padding: const EdgeInsets.only(top: 6),
@@ -283,7 +287,7 @@ class _DialogPageState extends State<DialogPage> {
                     _sender?.complete();
                     _sender = null;
                   }
-                  if (chat.messages.isNotEmpty && !chat.messages.last.out(_uid) && chat.lastReadTime <= chat.messages.last.timestamp) {
+                  if (chat.messages.isNotEmpty && !chat.messages.last.out(_uid) && (chat.lastReadTime ?? 0) <= chat.messages.last.timestamp) {
                     _messagesBloc.dispatch(MessagesReadEvent(chat.id));
                   }
                   return CustomScrollView(
@@ -354,113 +358,98 @@ typedef Future SendCallback(String message);
 class _ReplyField extends StatefulWidget {
   final SendCallback onMessage;
 
-  const _ReplyField({Key key, this.onMessage}) : super(key: key);
+  _ReplyField({Key key, this.onMessage}) : super(key: key);
 
   @override
   _ReplyFieldState createState() => _ReplyFieldState();
 }
 
-class _ReplyFieldState extends State<_ReplyField> with SingleTickerProviderStateMixin {
+class _ReplyFieldState extends State<_ReplyField> {
   final TextEditingController _inputController = TextEditingController();
-  final FocusNode _inputFocus = FocusNode();
-  AnimationController _controller;
-  bool _canSend = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      duration: const Duration(milliseconds: 200),
-      vsync: this,
-    )..addStatusListener((status) {
-      if (status == AnimationStatus.completed) {
-        FocusScope.of(context).requestFocus(_inputFocus);
-      } else if (status == AnimationStatus.reverse) {
-        _inputFocus.unfocus();
-      }
-    });
-  }
+  final ValueNotifier<bool> _canSend = ValueNotifier(false);
 
   @override
   Widget build(BuildContext context) {
     return Material(
       type: MaterialType.card,
       shape: const RoundedRectangleBorder(),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: <Widget>[
-          AnimatedBuilder(
-            animation: _controller,
-            builder: (ctx, child) {
-              return SizedOverflowBox(
-                size: Size.fromHeight(50 * _controller.value),
-                alignment: Alignment.center,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: child,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(
+          minHeight: 50,
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: <Widget>[
+            PopupMenuButton(
+              icon: const Icon(Icons.add, color: const Color(0xFFEF5353)),
+              itemBuilder: (ctx) => [
+                PopupMenuItem(
+                  child: RichText(
+                    text: TextSpan(
+                      children: [
+                        WidgetSpan(
+                          child: Icon(Icons.image, color: Theme.of(ctx).iconTheme.color),
+                          alignment: PlaceholderAlignment.middle,
+                        ),
+                        const WidgetSpan(child: SizedBox(width: 16)),
+                        TextSpan(
+                          text: 'Изображение',
+                          style: Theme.of(ctx).textTheme.subhead,
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
-              );
-            },
-            child: FadeTransition(
-              opacity: _controller,
+                PopupMenuItem(
+                  child: RichText(
+                    text: TextSpan(
+                      children: [
+                        WidgetSpan(
+                          child: Icon(Icons.contacts, color: Theme.of(ctx).iconTheme.color),
+                          alignment: PlaceholderAlignment.middle,
+                        ),
+                        const WidgetSpan(child: SizedBox(width: 16)),
+                        TextSpan(
+                          text: 'Контакт',
+                          style: Theme.of(ctx).textTheme.subhead,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            Expanded(
               child: TextField(
                 controller: _inputController,
-                focusNode: _inputFocus,
                 textCapitalization: TextCapitalization.sentences,
+                minLines: 1,
+                maxLines: 3,
                 decoration: const InputDecoration(
                   border: InputBorder.none,
                   hintText: 'Сообщение...',
                 ),
-                onChanged: (s) {
-                  bool b = s != null && s.trim().isNotEmpty;
-                  if (b != _canSend) {
-                    setState(() {
-                      _canSend = b;
-                    });
-                  }
-                },
+                onChanged: (s) => _canSend.value = s != null && s.trim().isNotEmpty,
               ),
             ),
-          ),
-          FadeTransition(opacity: _controller, child: Divider(height: 0)),
-          SizedBox(
-            height: 50,
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: <Widget>[
-                IconButton(
-                  icon: RotationTransition(
-                    turns: Tween<double>(begin: 0, end: 0.625).animate(_controller),
-                    child: Icon(Icons.add),
-                  ),
-                  color: const Color(0xFFEF5353),
-                  onPressed: () {
-                    if (_controller.value == 0) {
-                      _controller.animateTo(1, curve: Curves.easeOut);
-                    } else if (_controller.value == 1) {
-                      _controller.animateBack(0, curve: Curves.easeIn);
-                    }
-                  },
-                ),
-                const Expanded(child: SizedBox.shrink()),
-                FlatButton(
-                  child: Text('Отправить'),
+            ValueListenableBuilder<bool>(
+              valueListenable: _canSend,
+              builder: (context, data, _) {
+                return FlatButton(
+                  child: const Text('Отправить'),
                   textColor: const Color(0xff272d30),
                   shape: const RoundedRectangleBorder(),
-                  onPressed: _canSend ? () async {
-                    if (widget.onMessage == null || !_canSend) return;
-                    setState(() => _canSend = false);
-                    await widget.onMessage(_inputController.text);
-                    _controller.animateBack(0, curve: Curves.easeIn).then((_) {
-                      _inputController..clearComposing()..clear();
-                    });
+                  onPressed: data ? () async {
+                    if (widget.onMessage == null || !data) return;
+                    widget.onMessage(_inputController.text);
+                    _inputController..clearComposing()..clear();
+                    _canSend.value = false;
                   } : null,
-                ),
-              ],
+                );
+              },
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

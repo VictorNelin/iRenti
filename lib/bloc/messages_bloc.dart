@@ -128,7 +128,7 @@ class MessagesLoadedState extends MessagesState {
 
   MessagesLoadedState(this.uid, this.entries) : super(<dynamic>[uid, ...entries]);
 
-  int get unreadCount => entries.fold(0, (i, c) => c.messages.any((m) => !m.out(uid) && m.timestamp < c.lastReadTime) ? i + 1 : i);
+  int get unreadCount => entries.fold(0, (i, c) => !c.messages.last.out(uid) && c.messages.last.timestamp > c.lastReadTime ? i + 1 : i);
 
   @override
   String toString() => 'LoadedState { entries: $entries }';

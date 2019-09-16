@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flushbar/flushbar.dart';
+import 'package:irenti/image.dart';
 import 'package:showcaseview/showcase.dart';
 import 'package:irenti/bloc/auth_bloc.dart';
 import 'package:irenti/bloc/messages_bloc.dart';
@@ -151,10 +152,10 @@ class _CatalogCoverState extends State<CatalogCover> {
             TabBarView(
               children: <Widget>[
                 for (String s in widget.entry.photos)
-                  Image.network(
-                    s,
+                  Image(
+                    image: CachedNetworkImageProvider(s),
                     fit: BoxFit.cover,
-                    frameBuilder: (ctx, child, frame, _) {
+                    frameBuilder: (ctx, child, _, __) {
                       return Container(color: const Color(0xff272d30), child: child);
                     },
                   ),
@@ -282,7 +283,9 @@ class _CatalogCoverState extends State<CatalogCover> {
                                               child: Container(
                                                 color: const Color(0xffef5353),
                                                 alignment: Alignment.center,
-                                                child: user.photoUrl != null ? Image.network(user.photoUrl) : Padding(
+                                                child: user.photoUrl != null ? Image(
+                                                  image: CachedNetworkImageProvider(user.photoUrl),
+                                                ) : Padding(
                                                   padding: const EdgeInsets.only(top: 10),
                                                   child: user.photoUrl == null ? const Icon(Icons.person, size: 50) : null,
                                                 ),

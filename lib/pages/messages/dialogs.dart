@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:irenti/bloc/auth_bloc.dart';
 import 'package:irenti/bloc/messages_bloc.dart';
+import 'package:irenti/image.dart';
 import 'package:irenti/repository/messages_repository.dart';
 import 'package:irenti/widgets/title_bar.dart';
 
@@ -75,7 +76,7 @@ class _DialogsPageState extends State<DialogsPage> {
                               width: 20,
                               alignment: Alignment.center,
                               child: Offstage(
-                                offstage: entry.messages.isEmpty ? true : entry.messages.every((m) => m.timestamp >= entry.lastReadTime),
+                                offstage: entry.messages.isEmpty ? true : entry.messages.last.timestamp <= entry.lastReadTime,
                                 child: Container(
                                   width: 4,
                                   height: 4,
@@ -87,7 +88,7 @@ class _DialogsPageState extends State<DialogsPage> {
                               ),
                             ),
                             CircleAvatar(
-                              backgroundImage: entry.op(_uid).photoUrl != null ? NetworkImage(entry.op(_uid).photoUrl) : null,
+                              backgroundImage: entry.op(_uid).photoUrl != null ? CachedNetworkImageProvider(entry.op(_uid).photoUrl) : null,
                               radius: 20,
                               child: ClipOval(
                                 child: Padding(

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:irenti/bloc/auth_bloc.dart';
+import 'package:irenti/image.dart';
 import 'package:irenti/model/user.dart';
 import 'package:irenti/widgets/radio_group.dart';
 import 'package:irenti/widgets/list_tile.dart';
@@ -205,7 +206,7 @@ class _ProfilePageState extends State<ProfilePage> {
                       child: const Icon(Icons.add, size: 32.0, color: Color(0xFFEF5353)),
                     ),
                     backgroundImage: user.photoUrl != null && user.photoUrl.isNotEmpty
-                        ? NetworkImage(user.photoUrl)
+                        ? CachedNetworkImageProvider(user.photoUrl)
                         : null,
                   ),
                   Positioned.fill(
