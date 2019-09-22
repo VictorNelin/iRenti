@@ -87,62 +87,68 @@ class _DialogPageState extends State<DialogPage> {
   }
 
   Widget _buildDataCard(BuildContext context, CatalogEntry data, [bool showCaption = false]) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: <Widget>[
-        if (showCaption)
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 10),
-            child: Text(
-              'Квартира, которую вы обсуждаете',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontWeight: FontWeight.normal,
-                fontSize: 12,
+    return Directionality(
+      textDirection: Directionality.of(this.context),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          if (showCaption)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 10),
+              child: Text(
+                'Квартира, которую вы обсуждаете',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontWeight: FontWeight.normal,
+                  fontSize: 12,
+                ),
               ),
             ),
-          ),
-        Material(
-          shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(4))),
-          clipBehavior: Clip.antiAlias,
-          child: InkWell(
-            onTap: () => Navigator.pushNamed(context, '/catalog/single', arguments: data),
-            child: Container(
-              height: 110,
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: <Widget>[
-                  AspectRatio(
-                    aspectRatio: 1,
-                    child: Image(image: CachedNetworkImageProvider(data.photos[0]), fit: BoxFit.cover),
-                  ),
-                  Expanded(child: Padding(
+          Material(
+            shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(4))),
+            clipBehavior: Clip.antiAlias,
+            child: InkWell(
+              onTap: () => Navigator.pushNamed(context, '/catalog/single', arguments: data),
+              child: Container(
+                height: 110,
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: <Widget>[
+                    AspectRatio(
+                      aspectRatio: 1,
+                      child: Image(image: CachedNetworkImageProvider(data.photos[0]), fit: BoxFit.cover),
+                    ),
+                    Expanded(child: Padding(
                       padding: const EdgeInsets.all(10),
                       child: Column(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: <Widget>[
-                        Text(data.titleFormatted, style: TextStyle(
-                          fontWeight: FontWeight.normal,
-                          fontSize: 14,
-                        )),
-                        Text(
-                          '${data.owner != null ? 'Хозяин:\n${data.owner}, ' : ''}${data.phones[0]}',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w500,
-                            fontSize: 12,
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          Text(
+                            data.titleFormatted,
+                            style: TextStyle(
+                              fontWeight: FontWeight.normal,
+                              fontSize: 14,
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
-                  )),
-                ],
+                          Text(
+                            '${data.owner != null ? 'Хозяин:\n${data.owner}, ' : ''}${data.phones[0]}',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w500,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
+                    )),
+                  ],
+                ),
               ),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -357,7 +363,7 @@ class _DialogPageState extends State<DialogPage> {
                             child: _buildInfoCard(ctx),
                           ),
                         ),
-                      if (chat.data != null && chat.data.isNotEmpty)
+                      if (chat.data != null && chat.data.isNotEmpty && chat.messages.first.data == null)
                         SliverToBoxAdapter(
                           child: Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 20),

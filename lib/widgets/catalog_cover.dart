@@ -302,6 +302,9 @@ class _CatalogCoverState extends State<CatalogCover> {
                                                 alignment: Alignment.center,
                                                 child: user.photoUrl != null ? Image(
                                                   image: CachedNetworkImageProvider(user.photoUrl),
+                                                  width: 50,
+                                                  height: 50,
+                                                  fit: BoxFit.cover,
                                                 ) : Padding(
                                                   padding: const EdgeInsets.only(top: 10),
                                                   child: user.photoUrl == null ? const Icon(Icons.person, size: 50) : null,

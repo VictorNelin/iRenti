@@ -88,7 +88,6 @@ class MessagesRepository {
 
   Future<String> createDialog(String userId, String opId, Map<String, dynamic> data) async {
     var existing = await _firestore.collection('chats')
-        //.where('startedById', isEqualTo: userId)
         .where('userIds', arrayContains: userId)
         .getDocuments();
     if (existing.documents.isNotEmpty) {
@@ -113,8 +112,6 @@ class MessagesRepository {
           throw StateError(doc.documentID);
         }
       }
-      // shouldn't get here
-      return null;
     }
     DocumentReference ref = _firestore.collection('chats').document();
     Map<String, dynamic> d = {
