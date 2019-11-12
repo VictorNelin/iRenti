@@ -39,37 +39,37 @@ class _CatalogPageState extends State<CatalogPage> with SingleTickerProviderStat
   void initState() {
     super.initState();
     final authBloc = BlocProvider.of<AuthenticationBloc>(context);
-    authBloc.state.listen((state) {
+    authBloc.listen((state) {
       if (state is Authenticated) {
         _profile = state.data;
       }
     });
-    final authState = authBloc.currentState;
+    final authState = authBloc.state;
     if (authState is Authenticated) {
       _uid = authState.user.uid;
       _profile = authState.data;
     }
     _bloc = CatalogBloc(catalogRepository: _catalogRepository, userId: _uid);
-    _bloc.dispatch(CatalogFetch(profile: _profile, ids: widget.favorites ? (authState as Authenticated).fave : null));
+    _bloc.add(CatalogFetch(profile: _profile, ids: widget.favorites ? (authState as Authenticated).fave : null));
     if (!widget.favorites) {
       _scroller.addListener(() {
         if (_canFetch && (_scroller.offset / MediaQuery.of(context).size.height) >= _count * 0.8) {
           _canFetch = false;
-          _bloc.dispatch(CatalogFetch(profile: _profile));
+          _bloc.add(CatalogFetch(profile: _profile));
         }
       });
     }
     SharedPreferences.getInstance().then((prefs) {
       if (prefs.getBool('firstRunDone') != true) {
         prefs.setBool('firstRunDone', true);
-        ShowCaseWidget.startShowCase(context, [keyOne]);
+        ShowCaseWidget.of(context).startShowCase([keyOne]);
       }
     });
   }
 
   @override
   void dispose() {
-    _bloc.dispose();
+    _bloc.close();
     super.dispose();
   }
 
@@ -108,7 +108,7 @@ class _CatalogPageState extends State<CatalogPage> with SingleTickerProviderStat
                   displacement: 120,
                   onRefresh: () {
                     _refresher = Completer();
-                    _bloc.dispatch(CatalogFetch(profile: _profile, reload: true));
+                    _bloc.add(CatalogFetch(profile: _profile, reload: true));
                     return _refresher.future;
                   },
                   notificationPredicate: (_) => !widget.favorites,

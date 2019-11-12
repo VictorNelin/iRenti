@@ -433,8 +433,8 @@ class _CatalogCoverState extends State<CatalogCover> {
                     ),
                   StatefulBuilder(
                     builder: (ctx, setBtnState) {
-                      Authenticated auth = BlocProvider.of<AuthenticationBloc>(context).currentState is Authenticated
-                          ? BlocProvider.of<AuthenticationBloc>(context).currentState
+                      Authenticated auth = BlocProvider.of<AuthenticationBloc>(context).state is Authenticated
+                          ? BlocProvider.of<AuthenticationBloc>(context).state
                           : null;
                       return FloatingActionButton(
                         child: Icon(
@@ -448,7 +448,7 @@ class _CatalogCoverState extends State<CatalogCover> {
                         heroTag: null,
                         onPressed: () {
                           StreamSubscription _stateSub;
-                          _stateSub = BlocProvider.of<AuthenticationBloc>(context).state.skip(1).listen((state) {
+                          _stateSub = BlocProvider.of<AuthenticationBloc>(context).skip(1).listen((state) {
                             if (state is Authenticated) {
                               Flushbar(
                                 message: state.fave.contains(widget.entry.id) ? 'Добавлено в избранное' : 'Удалено из избранного',
@@ -464,7 +464,7 @@ class _CatalogCoverState extends State<CatalogCover> {
                               setBtnState(() {});
                             }
                           });
-                          BlocProvider.of<AuthenticationBloc>(context).dispatch(ToggleFave(widget.entry.id));
+                          BlocProvider.of<AuthenticationBloc>(context).add(ToggleFave(widget.entry.id));
                         },
                       );
                     },

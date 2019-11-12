@@ -109,7 +109,9 @@ class LoginState {
 
 @immutable
 abstract class LoginEvent extends Equatable {
-  LoginEvent([List props = const []]) : super(props);
+  final List<Object> props;
+
+  LoginEvent([this.props = const []]);
 }
 
 class Submitted extends LoginEvent {

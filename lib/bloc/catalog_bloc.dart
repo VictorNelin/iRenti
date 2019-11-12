@@ -37,7 +37,7 @@ class CatalogBloc extends Bloc<CatalogEvent, CatalogState> {
 
   @override
   Stream<CatalogState> mapEventToState(CatalogEvent event) async* {
-    final state = currentState;
+    final state = this.state;
     try {
       if (event is CatalogFetch) {
         if (state is LoadedState && !state.hasMore) return;
@@ -105,7 +105,9 @@ class CatalogBloc extends Bloc<CatalogEvent, CatalogState> {
 
 @immutable
 class CatalogState extends Equatable {
-  CatalogState([List props]) : super(props ?? []);
+  final List<Object> props;
+
+  CatalogState([List props]) : props = props ?? [];
 }
 
 @immutable

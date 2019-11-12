@@ -36,7 +36,7 @@ class _RegisterPageState extends State<RegisterPage> with SingleTickerProviderSt
     _registerBloc = RegisterBloc(
       userRepository: _userRepository,
     );
-    _stateSub = _registerBloc.state.listen((state) {
+    _stateSub = _registerBloc.listen((state) {
       if (state.isAwaitingCode) {
         LocalHistoryEntry entry = LocalHistoryEntry(onRemove: () => _tabs.animateTo(0));
         ModalRoute.of(context).addLocalHistoryEntry(entry);
@@ -46,7 +46,7 @@ class _RegisterPageState extends State<RegisterPage> with SingleTickerProviderSt
         ModalRoute.of(context).addLocalHistoryEntry(entry);
         _tabs.animateTo(2);
       } else if (state.isSuccess) {
-        BlocProvider.of<AuthenticationBloc>(context).dispatch(LoggedIn());
+        BlocProvider.of<AuthenticationBloc>(context).add(LoggedIn());
         Navigator.pushNamedAndRemoveUntil(context, '/main', (r) => r == null, arguments: 3);
         return;
       }
@@ -60,7 +60,7 @@ class _RegisterPageState extends State<RegisterPage> with SingleTickerProviderSt
   void dispose() {
     _stateSub.cancel();
     _tabs.dispose();
-    _registerBloc.dispose();
+    _registerBloc.close();
     super.dispose();
   }
 
@@ -178,7 +178,7 @@ class _RegisterPageState extends State<RegisterPage> with SingleTickerProviderSt
                                         onPressed: _inputAllowed ? () {
                                           if (Form.of(ctx).validate()) {
                                             Form.of(ctx).save();
-                                            _registerBloc.dispatch(SubmittedPhone(phone: _phone));
+                                            _registerBloc.add(SubmittedPhone(phone: _phone));
                                           }
                                         } : null,
                                       ),
@@ -251,7 +251,7 @@ class _RegisterPageState extends State<RegisterPage> with SingleTickerProviderSt
                                         disabledTextColor: const Color(0x61272D30),
                                         onPressed: _inputAllowed ? () {
                                           Form.of(ctx).save();
-                                          _registerBloc.dispatch(SubmittedCode(code: _code));
+                                          _registerBloc.add(SubmittedCode(code: _code));
                                         } : null,
                                       ),
                                     ],
@@ -402,7 +402,7 @@ class _RegisterPageState extends State<RegisterPage> with SingleTickerProviderSt
                               onPressed: _inputAllowed && _agreed ? () {
                                 if (Form.of(ctx).validate()) {
                                   Form.of(ctx).save();
-                                  _registerBloc.dispatch(SubmittedData(
+                                  _registerBloc.add(SubmittedData(
                                     name: _name,
                                     email: _email,
                                     password: _password,

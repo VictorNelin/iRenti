@@ -77,7 +77,7 @@ class _CatalogFilterPageState extends State<CatalogFilterPage> {
         _priceHigh = valToPos(_bloc.priceHighFilter, l[0], l[1]) ?? 1;
       }));
     } else {
-      _bloc.dispatch(CatalogCountWith(
+      _bloc.add(CatalogCountWith(
         rooms: _rooms,
         priceLow: posToVal(_priceLow, _minPrice, _maxPrice),
         priceHigh: posToVal(_priceHigh, _minPrice, _maxPrice),
@@ -248,7 +248,7 @@ class _CatalogFilterPageState extends State<CatalogFilterPage> {
                     child: Text(state.countLoading ? 'ЗАГРУЗКА...' : 'ПОКАЗАТЬ ВАРИАНТОВ${state.count == null ? '' : ': ${state.count}'}'),
                     color: const Color(0xFFEF5353),
                     onPressed: state.count == null || state.countLoading ? null : () {
-                      _bloc.dispatch(CatalogReload());
+                      _bloc.add(CatalogReload());
                       Navigator.pop(context);
                     },
                   );

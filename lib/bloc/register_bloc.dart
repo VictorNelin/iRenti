@@ -21,7 +21,7 @@ class RegisterBloc extends Bloc<RegisterEvent, RegisterState> {
     if (event is SubmittedPhone) {
       yield* _mapFormSubmittedToState(event.phone);
     } else if (event is SubmittedCode) {
-      yield* _mapCodeSubmittedToState(currentState.vId, event.code);
+      yield* _mapCodeSubmittedToState(state.vId, event.code);
     } else if (event is SubmittedData) {
       yield* _mapDataSubmittedToState(event.name, event.email, event.password);
     }
@@ -35,7 +35,7 @@ class RegisterBloc extends Bloc<RegisterEvent, RegisterState> {
       String vId = await _userRepository.signUp(
         phone: phone,
       );
-      _userRepository.verifyState?.then((_) => dispatch(SubmittedCode(code: null)));
+      _userRepository.verifyState?.then((_) => add(SubmittedCode(code: null)));
       yield RegisterState.awaitingCode(vId);
     } catch (_) {
       yield RegisterState.failure();
@@ -194,7 +194,9 @@ class RegisterState {
 
 @immutable
 abstract class RegisterEvent extends Equatable {
-  RegisterEvent([List props = const []]) : super(props);
+  final List<Object> props;
+
+  RegisterEvent([this.props = const []]);
 }
 
 class SubmittedPhone extends RegisterEvent {

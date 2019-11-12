@@ -86,7 +86,7 @@ class _ChangeNamePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    _name.value ??= (BlocProvider.of<AuthenticationBloc>(context).currentState as Authenticated).user.displayName ?? '';
+    _name.value ??= (BlocProvider.of<AuthenticationBloc>(context).state as Authenticated).user.displayName ?? '';
     return Scaffold(
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(kToolbarHeight),
@@ -181,8 +181,8 @@ class _ChangeNamePage extends StatelessWidget {
                               onPressed: snapshot ? () {
                                 Form.of(ctx).save();
                                 BlocProvider.of<AuthenticationBloc>(context)
-                                  ..dispatch(UpdateName(_name.value))
-                                  ..state.skip(1).listen((_) => Navigator.pop(context));
+                                  ..add(UpdateName(_name.value))
+                                  ..skip(1).listen((_) => Navigator.pop(context));
                               } : null,
                             );
                           },
@@ -345,10 +345,10 @@ class _ChangePhonePageState extends State<_ChangePhonePage> with SingleTickerPro
                                               onPressed: () {
                                                 if (Form.of(ctx).validate()) {
                                                   Form.of(ctx).save();
-                                                  _bloc.dispatch(UpdatePhone(_state.stream));
+                                                  _bloc.add(UpdatePhone(_state.stream));
                                                   _state.add(_phone);
                                                   _tabs.animateTo(1);
-                                                  _bloc.state.skip(1).listen((_) => Navigator.pop(context));
+                                                  _bloc.skip(1).listen((_) => Navigator.pop(context));
                                                 }
                                               },
                                             ),

@@ -66,7 +66,7 @@ class MessagesBloc extends Bloc<MessagesEvent, MessagesState> {
         }
         yield await _sortedLoaded(event.userId, chats);
         _allSub = _messagesRepository.getStreams(event.userId).listen((data) {
-          dispatch(_MessagesSetEvent(event.userId, data));
+          add(_MessagesSetEvent(event.userId, data));
         }, onDone: () {
           _allSub?.cancel();
           _allSub = null;
@@ -88,9 +88,9 @@ class MessagesBloc extends Bloc<MessagesEvent, MessagesState> {
   }
 
   @override
-  void dispose() {
+  Future<void> close() async {
     _allSub?.cancel();
-    super.dispose();
+    await super.close();
   }
 
   Future<String> createChat(String userId, String opId, Map<String, dynamic> data) {
@@ -104,7 +104,9 @@ class MessagesBloc extends Bloc<MessagesEvent, MessagesState> {
 
 @immutable
 class MessagesState extends Equatable {
-  MessagesState([List props]) : super(props ?? []);
+  final List<Object> props;
+
+  MessagesState([List props]) : props = props ?? [];
 }
 
 @immutable
@@ -150,7 +152,9 @@ class MessagesLoadedState extends MessagesState {
 
 @immutable
 class MessagesEvent extends Equatable {
-  MessagesEvent([List props]) : super(props ?? []);
+  final List<Object> props;
+
+  MessagesEvent([List props]) : props = props ?? [];
 }
 
 @immutable

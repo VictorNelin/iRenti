@@ -66,7 +66,7 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
   }
 
   Stream<AuthenticationState> _mapUpdateDataToState(List data) async* {
-    final state = currentState;
+    final state = this.state;
     if (state is Authenticated) {
       try {
         await _userRepository.updateProfileData(data);
@@ -76,7 +76,7 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
   }
 
   Stream<AuthenticationState> _mapUploadAvatarToState(bool useCamera) async* {
-    final state = currentState;
+    final state = this.state;
     if (state is Authenticated) {
       try {
         await _userRepository.uploadAvatar(useCamera);
@@ -86,7 +86,7 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
   }
 
   Stream<AuthenticationState> _mapToggleFaveToState(String id) async* {
-    final state = currentState;
+    final state = this.state;
     if (state is Authenticated) {
       try {
         List<String> faves = await _userRepository.toggleFave(state.fave, id);
@@ -96,7 +96,7 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
   }
 
   Stream<AuthenticationState> _mapUpdateNameToState(String name) async* {
-    final state = currentState;
+    final state = this.state;
     if (state is Authenticated) {
       try {
         final user = await _userRepository.updateName(name);
@@ -106,7 +106,7 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
   }
 
   Stream<AuthenticationState> _mapUpdatePhoneToState(Stream<String> data) async* {
-    final state = currentState;
+    final state = this.state;
     if (state is Authenticated) {
       try {
         final user = await _userRepository.updatePhone(data: data);
@@ -116,20 +116,22 @@ class AuthenticationBloc extends Bloc<AuthenticationEvent, AuthenticationState> 
   }
 
   @override
-  void dispose() {
+  Future<void> close() async {
     _phoneStream?.close();
     _userRepository.getUser().then((user) {
       if (user != null && (user.email == null || user.email.isEmpty)) {
         _userRepository.signOut();
       }
     });
-    super.dispose();
+    await super.close();
   }
 }
 
 @immutable
 abstract class AuthenticationState extends Equatable {
-  AuthenticationState([List props = const []]) : super(props);
+  final List<Object> props;
+
+  AuthenticationState([this.props = const []]);
 }
 
 class Uninitialized extends AuthenticationState {
@@ -155,7 +157,9 @@ class Unauthenticated extends AuthenticationState {
 
 @immutable
 abstract class AuthenticationEvent extends Equatable {
-  AuthenticationEvent([List props = const []]) : super(props);
+  final List<Object> props;
+
+  AuthenticationEvent([this.props = const []]);
 }
 
 class AppStarted extends AuthenticationEvent {

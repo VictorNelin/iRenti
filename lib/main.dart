@@ -48,13 +48,13 @@ class _AppState extends State<App> {
   void initState() {
     super.initState();
     _authenticationBloc = AuthenticationBloc(userRepository: _userRepository);
-    _authenticationBloc.dispatch(AppStarted());
+    _authenticationBloc.add(AppStarted());
     _messagesBloc = MessagesBloc(messagesRepository: _messagesRepository);
   }
 
   @override
   void dispose() {
-    _authenticationBloc.dispose();
+    _authenticationBloc.close();
     super.dispose();
   }
 
@@ -77,7 +77,7 @@ class _AppState extends State<App> {
           darkTheme: buildTheme(Brightness.dark),
           builder: (context, child) {
             return ShowCaseWidget(
-              child: child,
+              builder: Builder(builder: (ctx) => child),
             );
           },
           home: BlocBuilder(
@@ -88,7 +88,7 @@ class _AppState extends State<App> {
               }
               if (state is Authenticated) {
                 WidgetsBinding.instance.addPostFrameCallback((_) {
-                  _messagesBloc.dispatch(MessagesInitEvent(state.user.uid));
+                  _messagesBloc.add(MessagesInitEvent(state.user.uid));
                   Navigator.pushReplacementNamed(context, '/main');
                 });
               }

@@ -15,7 +15,6 @@ class MapBloc extends Bloc<MapEvent, MapState> {
 
   @override
   Stream<MapState> mapEventToState(MapEvent event) async* {
-    final state = currentState;
     try {
       if (event is MapLoadEvent) {
         yield MapState(entries: state.entries, loading: true);
@@ -39,10 +38,11 @@ class MapBloc extends Bloc<MapEvent, MapState> {
 
 @immutable
 class MapState extends Equatable {
+  final List<Object> props;
   final List<CatalogEntry> entries;
   final bool loading;
 
-  MapState({this.entries = const [], this.loading = false}) : super(<dynamic>[loading, ...entries]);
+  MapState({this.entries = const [], this.loading = false}) : props = <Object>[loading, ...entries];
 
   @override
   String toString() => 'MapState { entries: ${entries.length}, loading: $loading ';

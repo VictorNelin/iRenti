@@ -76,7 +76,7 @@ class _MapPageState extends State<MapPage> {
                     final bounds = _bounds;
                     _bounds = null;
                     Future.delayed(const Duration(milliseconds: 650), () {
-                      _bloc.dispatch(MapLoadEvent(bounds.north, bounds.west, bounds.south, bounds.east));
+                      _bloc.add(MapLoadEvent(bounds.north, bounds.west, bounds.south, bounds.east));
                     });
                   }
                 },
@@ -152,9 +152,9 @@ class _MapPageState extends State<MapPage> {
                           _loadNearby.value = b;
                           if (b) {
                             final bounds = _controller.bounds;
-                            _bloc.dispatch(MapLoadEvent(bounds.north, bounds.west, bounds.south, bounds.east));
+                            _bloc.add(MapLoadEvent(bounds.north, bounds.west, bounds.south, bounds.east));
                           } else {
-                            _bloc.dispatch(MapResetEvent());
+                            _bloc.add(MapResetEvent());
                           }
                         },
                       );

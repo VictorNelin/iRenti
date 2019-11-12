@@ -47,7 +47,7 @@ class _DialogPageState extends State<DialogPage> {
   @override
   void initState() {
     super.initState();
-    _uid = (BlocProvider.of<AuthenticationBloc>(context).currentState as Authenticated).user.uid;
+    _uid = (BlocProvider.of<AuthenticationBloc>(context).state as Authenticated).user.uid;
   }
 
   String get _desc {
@@ -333,7 +333,7 @@ class _DialogPageState extends State<DialogPage> {
                     _sender = null;
                   }
                   if (chat.messages.isNotEmpty && !chat.messages.last.out(_uid) && (chat.lastReadTime ?? 0) <= chat.messages.last.timestamp) {
-                    _messagesBloc.dispatch(MessagesReadEvent(chat.id));
+                    _messagesBloc.add(MessagesReadEvent(chat.id));
                   }
                   return CustomScrollView(
                     controller: _scrollController,
@@ -389,14 +389,14 @@ class _DialogPageState extends State<DialogPage> {
             dialogId: widget.dialogId,
             onMessage: (msg, img) {
               _sender = Completer();
-              _messagesBloc.dispatch(MessagesSendEvent(_uid, widget.dialogId, text: msg, imageUrl: img));
+              _messagesBloc.add(MessagesSendEvent(_uid, widget.dialogId, text: msg, imageUrl: img));
               return _sender.future;
             },
             onContact: () {
-              _messagesBloc.dispatch(MessagesSendContactEvent(
+              _messagesBloc.add(MessagesSendContactEvent(
                 _uid,
                 widget.dialogId,
-                (BlocProvider.of<AuthenticationBloc>(context).currentState as Authenticated).user.phoneNumber,
+                (BlocProvider.of<AuthenticationBloc>(context).state as Authenticated).user.phoneNumber,
               ));
             },
           ),

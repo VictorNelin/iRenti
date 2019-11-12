@@ -30,9 +30,9 @@ class _LoginPageState extends State<LoginPage> {
   void initState() {
     super.initState();
     _loginBloc = LoginBloc(userRepository: _userRepository);
-    _loginSub = _loginBloc.state.listen((state) {
+    _loginSub = _loginBloc.listen((state) {
       if (state.isSuccess) {
-        BlocProvider.of<AuthenticationBloc>(context).dispatch(LoggedIn());
+        BlocProvider.of<AuthenticationBloc>(context).add(LoggedIn());
         Navigator.pushNamedAndRemoveUntil(context, '/main', (r) => r == null);
         //Navigator.pushReplacementNamed(context, '/main');
         return;
@@ -46,7 +46,7 @@ class _LoginPageState extends State<LoginPage> {
   @override
   void dispose() {
     _loginSub.cancel();
-    _loginBloc.dispose();
+    _loginBloc.close();
     super.dispose();
   }
 
@@ -149,7 +149,7 @@ class _LoginPageState extends State<LoginPage> {
                   onPressed: _inputAllowed ? () {
                     if (Form.of(ctx).validate()) {
                       Form.of(ctx).save();
-                      _loginBloc.dispatch(LoginWithCredentialsPressed(email: _login, password: _password));
+                      _loginBloc.add(LoginWithCredentialsPressed(email: _login, password: _password));
                     }
                   } : null,
                 ),

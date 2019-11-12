@@ -27,12 +27,12 @@ class _CatalogSinglePageState extends State<CatalogSinglePage> with SingleTicker
     super.initState();
     List<dynamic> profile;
     final authBloc = BlocProvider.of<AuthenticationBloc>(context);
-    authBloc.state.listen((state) {
+    authBloc.listen((state) {
       if (state is Authenticated) {
         profile = state.data;
       }
     });
-    final authState = authBloc.currentState;
+    final authState = authBloc.state;
     if (authState is Authenticated) {
       _uid = authState.user.uid;
       profile = authState.data;

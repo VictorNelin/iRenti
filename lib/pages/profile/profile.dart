@@ -182,13 +182,13 @@ class _ProfilePageState extends State<ProfilePage> {
                     CupertinoDialogAction(
                       child: Text('Сделать фото'),
                       onPressed: () {
-                        BlocProvider.of<AuthenticationBloc>(context).dispatch(UploadAvatar(true));
+                        BlocProvider.of<AuthenticationBloc>(context).add(UploadAvatar(true));
                       },
                     ),
                     CupertinoDialogAction(
                       child: Text('Выбрать из галереи'),
                       onPressed: () {
-                        BlocProvider.of<AuthenticationBloc>(context).dispatch(UploadAvatar(false));
+                        BlocProvider.of<AuthenticationBloc>(context).add(UploadAvatar(false));
                       },
                     ),
                   ],
@@ -286,7 +286,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 child: const Text('СОХРАНИТЬ'),
                 color: const Color(0xFFEF5353),
                 onPressed: () {
-                  if (_canSave) BlocProvider.of<AuthenticationBloc>(context).dispatch(UpdateProfile(this.data));
+                  if (_canSave) BlocProvider.of<AuthenticationBloc>(context).add(UpdateProfile(this.data));
                   setState(() {
                     _isEditing = false;
                     _firstRun = false;
@@ -322,7 +322,7 @@ class _ProfilePageState extends State<ProfilePage> {
               const Expanded(child: SizedBox(height: kToolbarHeight)),
               InkWell(
                 onTap: () {
-                  BlocProvider.of<AuthenticationBloc>(context).dispatch(LoggedOut());
+                  BlocProvider.of<AuthenticationBloc>(context).add(LoggedOut());
                   Navigator.of(context, rootNavigator: true).pushReplacementNamed('/');
                 },
                 child: Container(

@@ -21,12 +21,12 @@ class _DialogsPageState extends State<DialogsPage> {
   @override
   void initState() {
     super.initState();
-    _uid = (BlocProvider.of<AuthenticationBloc>(context).currentState as Authenticated).user.uid;
+    _uid = (BlocProvider.of<AuthenticationBloc>(context).state as Authenticated).user.uid;
   }
 
   @override
   void dispose() {
-    _messagesBloc.dispose();
+    _messagesBloc.close();
     super.dispose();
   }
 
